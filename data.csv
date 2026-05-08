@@ -1,0 +1,8 @@
+text,emotion,sentiment,confidence
+"I am very happy today",happy,positive,0.95
+"I feel completely lost and confused",fear,negative,0.80
+"I am okay just normal day",neutral,neutral,0.60
+"I love solving hard problems",happy,positive,0.90
+"I don't know what is happening anymore",fear,negative,0.85
+"I feel calm and focused",neutral,positive,0.75
+"I am angry about this situation",angry,negative,0.92
