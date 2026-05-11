@@ -1,57 +1,76 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Cognitive Mirror</title>
-
-    <style>
-        body {
-            font-family: Arial;
-            text-align: center;
-            background: #0f172a;
-            color: white;
-            padding: 40px;
-        }
-
-        textarea {
-            width: 60%;
-            height: 120px;
-            padding: 10px;
-        }
-
-        button {
-            padding: 10px 20px;
-            margin-top: 10px;
-            cursor: pointer;
-        }
-
-        .box {
-            margin-top: 20px;
-            padding: 20px;
-            background: #1e293b;
-            display: inline-block;
-            border-radius: 10px;
-        }
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cognitive Mirror - Mind State Analyzer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 
 <body>
+    <header class="header">
+        <div class="header-content">
+            <h1 class="logo">🧠 Cognitive Mirror</h1>
+            <p class="tagline">Discover your mental state through AI analysis</p>
+        </div>
+    </header>
 
-    <h1>🧠 Cognitive Mirror</h1>
+    <main class="main">
+        <section class="container">
+            <div class="input-section">
+                <form id="mind-form" class="form">
+                    <div class="form-group">
+                        <label for="thought" class="form-label">What's on your mind?</label>
+                        <textarea 
+                            id="thought" 
+                            name="text" 
+                            class="textarea"
+                            placeholder="Enter a thought, emotion, or feeling..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Analyze Mind State</button>
+                </form>
+            </div>
 
-    <form method="POST">
-        <textarea name="text" placeholder="Enter human thought..."></textarea>
-        <br>
-        <button type="submit">Analyze Mind State</button>
-    </form>
+            <div class="output-section" id="output-section">
+                <div class="box" id="output">
+                    {% if result %}
+                        <div class="result-content">
+                            <h2>Analysis Results</h2>
+                            <div class="result-grid">
+                                <div class="result-card emotion-card">
+                                    <div class="result-label">Emotion</div>
+                                    <div class="result-value">{{ result.emotion | capitalize }}</div>
+                                </div>
+                                <div class="result-card sentiment-card">
+                                    <div class="result-label">Sentiment</div>
+                                    <div class="result-value">{{ result.sentiment | capitalize }}</div>
+                                </div>
+                                <div class="result-card confidence-card">
+                                    <div class="result-label">Confidence</div>
+                                    <div class="result-value">{{ (result.confidence * 100) | int }}%</div>
+                                </div>
+                            </div>
+                            <div class="mind-state-box">
+                                <div class="mind-state-label">Mind State</div>
+                                <p class="mind-state-text">{{ result.mind_state }}</p>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <div class="empty-icon">✨</div>
+                            <h3>Start Analyzing</h3>
+                            <p>Enter your thoughts to discover your mental state</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </section>
+    </main>
 
-    {% if result %}
-    <div class="box">
-        <h2>Inference Output</h2>
-        <p>Emotion: {{ result.emotion }}</p>
-        <p>Sentiment: {{ result.sentiment }}</p>
-        <p>Confidence: {{ result.confidence }}</p>
-    </div>
-    {% endif %}
+    <footer class="footer">
+        <p>&copy; <span id="year"></span> Cognitive Mirror. All Rights Reserved.</p>
+    </footer>
 
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
