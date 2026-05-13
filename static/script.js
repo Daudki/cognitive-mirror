@@ -5,6 +5,7 @@ const outputSection = document.getElementById("output-section");
 const button = form.querySelector("button");
 
 function renderResult(result) {
+    const confidencePercent = Math.round(result.confidence * 100);
     output.innerHTML = `
         <div class="result-content">
             <h2>Analysis Results</h2>
@@ -19,7 +20,7 @@ function renderResult(result) {
                 </div>
                 <div class="result-card confidence-card">
                     <div class="result-label">Confidence</div>
-                    <div class="result-value">${Math.round(result.confidence * 100)}% ${result.confidence < 0.5 ? '<span class="tentative">(Tentative)</span>' : ''}</div>
+                    <div class="result-value">${confidencePercent}%</div>
                 </div>
             </div>
             <div class="mind-state-box">
@@ -60,6 +61,7 @@ function renderEmpty() {
 }
 
 function capitalizeFirstLetter(str) {
+    if (!str) return '';
     return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
@@ -106,9 +108,7 @@ form.addEventListener("submit", async (event) => {
     }
 });
 
-// Initialize year in footer
 const year = document.getElementById("year");
 if (year) year.textContent = new Date().getFullYear();
 
-// Initialize with empty state
 renderEmpty();

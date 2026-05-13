@@ -46,12 +46,6 @@ class DummyAdapter(BaseAdapter):
 
         text = template.format(emotion=emotion, sentiment=sentiment, detail=detail)
 
-        # Add confidence qualifier phrasing
-        if confidence < 0.5:
-            text += " (This reading is tentative given limited cues.)"
-        elif confidence > 0.9:
-            text += " (This assessment is made with high confidence.)"
-
         return {
             "text": text,
             "model": "dummy-adapter",

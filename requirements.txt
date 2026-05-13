@@ -8,3 +8,4 @@ transformers
 torch
 openai==0.28.0
 pytest
+datasets
