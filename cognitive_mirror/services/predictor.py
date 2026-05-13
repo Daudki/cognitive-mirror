@@ -130,7 +130,7 @@ class PredictorService:
         try:
             emotion_result = ModelManager.predict_emotion(text)
             sentiment_result = ModelManager.predict_sentiment(text)
-            mind_state = ModelManager.generate_mindstate(emotion_result, sentiment_result)
+            mind_state = ModelManager.generate_mindstate(emotion_result, sentiment_result, raw_text=text)
             
             # Track emotion distribution
             emotion_distribution.labels(

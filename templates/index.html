@@ -47,13 +47,23 @@
                                 </div>
                                 <div class="result-card confidence-card">
                                     <div class="result-label">Confidence</div>
-                                    <div class="result-value">{{ (result.confidence * 100) | int }}%</div>
+                                    <div class="result-value">{{ (result.confidence * 100) | int }}% {% if result.confidence < 0.5 %}<span class="tentative">(Tentative)</span>{% endif %}</div>
                                 </div>
                             </div>
                             <div class="mind-state-box">
                                 <div class="mind-state-label">Mind State</div>
                                 <p class="mind-state-text">{{ result.mind_state }}</p>
                             </div>
+                            {% if result.top_emotions %}
+                                <div class="top-emotions">
+                                    <h3>Top Emotions</h3>
+                                    <ul>
+                                        {% for e in result.top_emotions %}
+                                            <li>{{ e.emotion }} — {{ (e.probability * 100) | round(1) }}%</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            {% endif %}
                         </div>
                     {% else %}
                         <div class="empty-state">

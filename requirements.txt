@@ -3,3 +3,8 @@ numpy
 scikit-learn
 pickle
 flask
+redis
+transformers
+torch
+openai==0.28.0
+pytest

@@ -19,13 +19,21 @@ function renderResult(result) {
                 </div>
                 <div class="result-card confidence-card">
                     <div class="result-label">Confidence</div>
-                    <div class="result-value">${Math.round(result.confidence * 100)}%</div>
+                    <div class="result-value">${Math.round(result.confidence * 100)}% ${result.confidence < 0.5 ? '<span class="tentative">(Tentative)</span>' : ''}</div>
                 </div>
             </div>
             <div class="mind-state-box">
                 <div class="mind-state-label">Mind State</div>
                 <p class="mind-state-text">${result.mind_state}</p>
             </div>
+            ${result.top_emotions && result.top_emotions.length ? `
+                <div class="top-emotions">
+                    <h3>Top Emotions</h3>
+                    <ul>
+                        ${result.top_emotions.map(e => `<li>${capitalizeFirstLetter(e.emotion)} — ${Math.round(e.probability * 100)}%</li>`).join('')}
+                    </ul>
+                </div>
+            ` : ''}
         </div>
     `;
     outputSection.scrollIntoView({ behavior: "smooth", block: "nearest" });

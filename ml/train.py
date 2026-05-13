@@ -6,45 +6,117 @@ import joblib
 import re
 import string
 from pathlib import Path
+import sys
+
+# Ensure project root is on sys.path when running this script directly
+project_root = Path(__file__).resolve().parent.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
+# Local imports that require project root on sys.path
+from cognitive_mirror.preprocessing import clean_text
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import LabelEncoder
-from sklearn.pipeline import Pipeline
 from sklearn.model_selection import cross_val_score
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 MODEL_DIR = BASE_DIR / "models"
 DATA_PATH = Path(__file__).resolve().parent / "data.csv"
+APPROVED_PATH = BASE_DIR / "data" / "interaction_cases" / "approved.jsonl"
 
 MODEL_DIR.mkdir(parents=True, exist_ok=True)
 
+import argparse
+import json
+
+
+def load_approved(path: Path):
+    items = []
+    if not path.exists():
+        return items
+    with path.open("r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                obj = json.loads(line)
+                items.append(obj)
+            except Exception:
+                continue
+    return items
+
+
+parser = argparse.ArgumentParser(description="Train emotion and sentiment classifiers")
+parser.add_argument("--use-approved", action="store_true", help="Include approved review cases from data/interaction_cases/approved.jsonl")
+args = parser.parse_args()
+
+
 df = pd.read_csv(DATA_PATH)
+if args.use_approved:
+    approved = load_approved(APPROVED_PATH)
+    if approved:
+        # Build a small DataFrame with required columns and append
+        rows = []
+        for a in approved:
+            text = a.get("text")
+            emotion = None
+            sentiment = None
+            # approved cases may include emotion/sentiment structures
+            if isinstance(a.get("emotion"), dict):
+                emotion = a.get("emotion", {}).get("emotion")
+            else:
+                emotion = a.get("emotion")
+            if isinstance(a.get("sentiment"), dict):
+                sentiment = a.get("sentiment", {}).get("sentiment")
+            else:
+                sentiment = a.get("sentiment")
+
+            if text and emotion and sentiment:
+                rows.append({"text": text, "emotion": emotion, "sentiment": sentiment})
+
+        if rows:
+            df_extra = pd.DataFrame(rows)
+            print(f"Loaded {len(df_extra)} approved cases for training")
+            df = pd.concat([df, df_extra], ignore_index=True)
 
 df["text"] = df["text"].astype(str).str.strip().str.strip('"').str.strip("'")
 df["emotion"] = df["emotion"].astype(str).str.strip().str.strip('"').str.strip("'")
 df["sentiment"] = df["sentiment"].astype(str).str.strip().str.strip('"').str.strip("'")
 
-stop_words = ["i", "me", "my", "myself", "we", "our", "ours", "ourselves", "you", "your",
-              "yours", "yourself", "yourselves", "he", "him", "his", "himself", "she",
-              "her", "hers", "herself", "it", "its", "itself", "they", "them", "their",
-              "theirs", "themselves", "what", "which", "who", "whom", "this", "that",
-              "these", "those", "am", "is", "are", "was", "were", "be", "been", "being",
-              "have", "has", "had", "having", "do", "does", "did", "doing", "a", "an",
-              "the", "and", "but", "if", "or", "because", "as", "until", "while", "of",
-              "at", "by", "for", "with", "about", "between", "into", "through", "during",
-              "before", "after", "above", "below", "to", "from", "in", "out", "on", "off",
-              "over", "under", "again", "further", "then", "once", "here", "there", "when",
-              "where", "why", "how", "all", "both", "each", "few", "more", "most", "other",
-              "some", "such", "no", "nor", "not", "only", "own", "same", "so", "than",
-              "too", "very", "can", "will", "just", "should", "now"]
+# Use shared preprocessing.clean_text
+
+# Consolidate fine-grained emotion labels into a smaller canonical set
+EMOTION_GROUPS = {
+    "joy": {"happy", "joy", "glad", "amazing", "proud", "secure", "content", "satisfied", "relieved", "excited"},
+    "anger": {"angry", "angryness", "furious", "irritated", "annoyed", "rage"},
+    "sadness": {"sad", "unhappy", "depressed", "miserable", "lonely", "down"},
+    "fear": {"afraid", "scared", "fearful", "anxious", "nervous", "worried"},
+    "surprise": {"surprised", "shocked", "astonished"},
+    "disgust": {"disgust", "disgusted", "repulsed"},
+    "neutral": {"neutral", "stoic", "calm", "resolute", "indifferent"},
+}
 
 
-def clean_text(text):
-    text = text.lower()
-    text = re.sub(r'[^a-zA-Z\s]', '', text)
-    words = text.split()
-    words = [w for w in words if w not in stop_words and len(w) > 1]
-    return ' '.join(words)
+def map_emotion_label(label: str) -> str:
+    if not isinstance(label, str) or not label:
+        return "neutral"
+    s = label.lower().strip()
+    # exact match
+    for canon, words in EMOTION_GROUPS.items():
+        if s in words:
+            return canon
+    # substring match fallback
+    for canon, words in EMOTION_GROUPS.items():
+        for w in words:
+            if w in s:
+                return canon
+    # default fallback
+    return "neutral"
+
+
+df["emotion"] = df["emotion"].apply(map_emotion_label)
 
 
 df["clean_text"] = df["text"].apply(clean_text)
