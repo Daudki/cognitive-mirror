@@ -26,15 +26,37 @@ def init_models():
     sentiment_model = load_model("sentiment.pkl")
     vectorizer = load_model("vectorizer.pkl")
     label_encoder = load_model("label_encoder.pkl")
+    try:
+        label_encoder_sentiment = load_model("label_encoder_sentiment.pkl")
+    except FileNotFoundError:
+        label_encoder_sentiment = None
+    from cognitive_mirror.models.manager import ModelManager
+
+    ModelManager._models = {
+        "emotion": emotion_model,
+        "sentiment": sentiment_model,
+        "vectorizer": vectorizer,
+        "label_encoder": label_encoder,
+        "label_encoder_sentiment": label_encoder_sentiment,
+    }
+    ModelManager._initialized = True
 
 def predict(text):
-    if vectorizer is None:
+    """Run local inference; returns API-shaped dict for scripts and tests."""
+    from cognitive_mirror.models.manager import ModelManager
+
+    if not ModelManager.is_healthy():
         init_models()
-    features = vectorizer.transform([text])
-    emotion_pred = emotion_model.predict(features)[0]
-    sentiment_pred = sentiment_model.predict(features)[0]
-    emotion_label = label_encoder.inverse_transform([emotion_pred])[0]
+
+    emotion_result = ModelManager.predict_emotion(text)
+    sentiment_result = ModelManager.predict_sentiment(text)
+    mind_state = ModelManager.generate_mindstate(
+        emotion_result, sentiment_result, raw_text=text
+    )
     return {
-        "emotion": emotion_label,
-        "sentiment": sentiment_pred,
+        "emotion": emotion_result["emotion"],
+        "sentiment": sentiment_result["sentiment"],
+        "confidence": emotion_result["confidence"],
+        "mind_state": mind_state,
+        "top_emotions": emotion_result.get("top_emotions", []),
     }

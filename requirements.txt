@@ -1,11 +1,14 @@
 pandas
 numpy
 scikit-learn
-pickle
+joblib
 flask
+flask-cors
+structlog
+marshmallow
+prometheus-client
 redis
-transformers
-torch
-openai==0.28.0
 pytest
 datasets
+# Optional: only needed when LLM_PROVIDER=api
+openai>=1.0.0

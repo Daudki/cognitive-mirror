@@ -1,69 +1,103 @@
 #!/usr/bin/env python
+"""Cognitive Mirror web app — local ML first, optional LLM for mind-state prose."""
+
 import os
-import json
-from flask import Flask, request, jsonify, render_template
-from openai import OpenAI
+from pathlib import Path
+
+from flask import Flask, jsonify, render_template, request
+
+from cognitive_mirror.models.manager import ModelManager
+from cognitive_mirror.services.cache import CacheService
+from cognitive_mirror.services.predictor import PredictorService
+from cognitive_mirror.services.review import approve_case, list_approved, list_pending, submit_case
 
 app = Flask(__name__)
 
-client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+BASE_DIR = Path(__file__).resolve().parent
+MODEL_DIR = BASE_DIR / "models"
 
-SYSTEM_PROMPT = """You are an expert psychologist and emotion classifier. Analyze the text and return ONLY valid JSON with these exact keys:
-- emotion: one of [joy, sadness, anger, fear, surprise, disgust, neutral, pride, shame, relief, hope, love, envy, guilt, boredom, confusion, frustration, nostalgia, contentment, excitement]
-- sentiment: one of [positive, negative, neutral, mixed]
-- confidence: float between 0 and 1
-- mind_state: a one-sentence empathetic description of the person's mental state
 
-No explanations. No markdown. Pure JSON only."""
+def _bootstrap_models() -> None:
+    """Load trained artifacts; required for /predict to work without OpenAI."""
+    checkpoint = MODEL_DIR / "model.pkl"
+    if checkpoint.exists():
+        ModelManager.initialize(str(checkpoint))
+        return
+    ModelManager.initialize(str(MODEL_DIR))
+
+
+_bootstrap_models()
+
 
 @app.route("/")
 def home():
     return render_template("index.html")
 
+
 @app.route("/predict", methods=["POST"])
 def predict_api():
-    data = request.get_json()
-    text = (data or {}).get("text", "").strip()
+    data = request.get_json(silent=True) or {}
+    text = (data.get("text") or "").strip()
+    consent = bool(data.get("consent", False))
 
     if not text:
         return jsonify({"error": "No text provided"}), 400
 
+    if not ModelManager.is_healthy():
+        return jsonify({
+            "error": "Local models are not loaded. Run: python -m ml.train",
+        }), 503
+
     try:
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": text},
-            ],
-            temperature=0.3,
-            max_tokens=200,
-        )
+        service = PredictorService(cache_service=CacheService())
+        result = service.predict(text)
 
-        raw = response.choices[0].message.content.strip()
-
-        if raw.startswith("```"):
-            raw = raw.split("\n", 1)[-1].rsplit("```", 1)[0]
-
-        result = json.loads(raw)
+        if consent:
+            submit_case({
+                "text": text,
+                "emotion": result.emotion,
+                "sentiment": result.sentiment,
+                "mind_state": result.mind_state,
+                "consent": True,
+            })
 
         return jsonify({
-            "emotion": result.get("emotion", "neutral"),
-            "sentiment": result.get("sentiment", "neutral"),
-            "confidence": result.get("confidence", 0.5),
-            "mind_state": result.get("mind_state", "Unable to determine mental state."),
-            "top_emotions": [],
-        })
-
-    except json.JSONDecodeError:
-        return jsonify({
-            "emotion": "neutral",
-            "sentiment": "neutral",
-            "confidence": 0.0,
-            "mind_state": "Analysis produced an unreadable result.",
-            "top_emotions": [],
+            "emotion": result.emotion.get("emotion"),
+            "sentiment": result.sentiment.get("sentiment"),
+            "confidence": result.emotion.get("confidence"),
+            "mind_state": result.mind_state,
+            "top_emotions": result.emotion.get("top_emotions", []),
         })
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": f"Unable to analyze: {str(e)}"}), 500
+
+
+@app.route("/review/pending", methods=["GET"])
+def review_pending():
+    return jsonify({"pending": list_pending()}), 200
+
+
+@app.route("/review/approved", methods=["GET"])
+def review_approved():
+    return jsonify({"approved": list_approved()}), 200
+
+
+@app.route("/review/approve", methods=["POST"])
+def review_approve():
+    data = request.get_json(silent=True) or {}
+    idx = data.get("index")
+    if idx is None:
+        return jsonify({"error": "index is required"}), 400
+    try:
+        idx = int(idx)
+    except (TypeError, ValueError):
+        return jsonify({"error": "index must be an integer"}), 400
+
+    approved = approve_case(idx)
+    if not approved:
+        return jsonify({"error": "invalid index"}), 404
+    return jsonify({"approved": approved}), 200
+
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=os.environ.get("FLASK_DEBUG", "1") == "1")

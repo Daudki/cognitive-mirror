@@ -8,7 +8,7 @@ class Config:
     """Base configuration shared across all environments."""
     
     # Security
-    SECRET_KEY: str = os.environ.get("SECRET_KEY", "change-me-in-production")
+    SECRET_KEY: str = os.environ.get("SECRET_KEY", "the-outcast-044-machines")
     
     # Model
     MODEL_PATH: str = os.environ.get("MODEL_PATH", "models/model.pkl")

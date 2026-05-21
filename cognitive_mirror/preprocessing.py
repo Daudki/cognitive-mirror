@@ -12,7 +12,7 @@ stop_words = {
     "before", "after", "above", "below", "to", "from", "in", "out", "on", "off",
     "over", "under", "again", "further", "then", "once", "here", "there", "when",
     "where", "why", "how", "all", "both", "each", "few", "more", "most", "other",
-    "some", "such", "no", "nor", "not", "only", "own", "same", "so", "than",
+    "some", "such", "only", "own", "same", "so", "than",
     "too", "very", "can", "will", "just", "should", "now"
 }
 

@@ -38,8 +38,15 @@ POST `/predict` with JSON `{ "text": "..." }` returns:
 }
 ```
 
-LLM integration
-Set `LLM_PROVIDER=api` and `OPENAI_API_KEY` to use OpenAI, or `LLM_PROVIDER=local` with a local model name. The code falls back to a `DummyAdapter` when no provider is configured.
+Inference (local-first)
+By default `/predict` uses the trained sklearn models in `models/` — no API key required. Mind-state text comes from templates in `ml/data.csv`. Optional LLM prose: set `LLM_PROVIDER=api` and `OPENAI_API_KEY` (only then is OpenAI called).
+
+Training
+```bash
+python -m ml.train                    # local CSV + optional HuggingFace data
+TRAIN_SKIP_HF=1 python -m ml.train    # offline: local CSV only
+LOCAL_SAMPLE_WEIGHT=5 python -m ml.train  # repeat local rows so they steer the model
+```
 
 How this improves predictions
 - Consolidating labels reduces class cardinality so probability mass concentrates on plausible labels, increasing reported confidences.

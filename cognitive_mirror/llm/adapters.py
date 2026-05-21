@@ -92,53 +92,80 @@ class OpenAIAdapter(BaseAdapter):
             self.timeout = timeout
 
     def generate(self, prompt: str, max_tokens: int = 256, **kwargs) -> Dict[str, Any]:
-        try:
-            import openai
-        except Exception as e:
-            raise RuntimeError("OpenAI package not installed. Install with `pip install openai`") from e
+        if not self.api_key:
+            raise RuntimeError("OPENAI_API_KEY is not set")
 
-        if self.api_key:
-            openai.api_key = self.api_key
-
-        # Build messages for ChatCompletion
         messages = [
-            {"role": "system", "content": "You are a compassionate psychology expert. Provide empathetic, evidence-based, concise observations."},
+            {
+                "role": "system",
+                "content": (
+                    "You are a compassionate psychology expert. Provide empathetic, "
+                    "evidence-based, concise observations."
+                ),
+            },
             {"role": "user", "content": prompt},
         ]
 
-        # Basic retry/backoff
         import time
 
         attempts = 3
         backoff = 1.0
         last_err = None
-        for attempt in range(attempts):
+        for _ in range(attempts):
             try:
-                resp = openai.ChatCompletion.create(
-                    model=self.model,
-                    messages=messages,
-                    max_tokens=max_tokens,
-                    temperature=0.7,
-                    timeout=self.timeout,
-                )
-                # extract text
-                if resp and getattr(resp, "choices", None):
-                    choice = resp["choices"][0]
-                    text = choice.get("message", {}).get("content") or choice.get("text") or ""
-                else:
-                    text = resp.get("choices", [])[0].get("message", {}).get("content", "") if resp else ""
-
-                usage = resp.get("usage") if isinstance(resp, dict) else None
-                tokens = usage.get("total_tokens") if usage and isinstance(usage, dict) else (len(text.split()) if text else 0)
-
+                text, usage = self._chat_completion(messages, max_tokens)
+                tokens = 0
+                if usage and isinstance(usage, dict):
+                    tokens = usage.get("total_tokens", 0)
+                if not tokens and text:
+                    tokens = len(text.split())
                 return {"text": text, "model": self.model, "tokens": tokens, "usage": usage}
-
             except Exception as e:
                 last_err = e
                 time.sleep(backoff)
                 backoff *= 2
 
         raise RuntimeError(f"OpenAI request failed after retries: {last_err}")
+
+    def _chat_completion(self, messages, max_tokens: int):
+        """Support both OpenAI Python SDK v1+ and legacy v0.28."""
+        try:
+            from openai import OpenAI
+
+            client = OpenAI(api_key=self.api_key, timeout=self.timeout)
+            resp = client.chat.completions.create(
+                model=self.model,
+                messages=messages,
+                max_tokens=max_tokens,
+                temperature=0.7,
+            )
+            text = (resp.choices[0].message.content or "").strip()
+            usage = getattr(resp, "usage", None)
+            if usage is not None and hasattr(usage, "model_dump"):
+                usage = usage.model_dump()
+            elif usage is not None:
+                usage = dict(usage) if not isinstance(usage, dict) else usage
+            return text, usage
+        except ImportError:
+            pass
+
+        import openai
+
+        openai.api_key = self.api_key
+        resp = openai.ChatCompletion.create(
+            model=self.model,
+            messages=messages,
+            max_tokens=max_tokens,
+            temperature=0.7,
+            request_timeout=self.timeout,
+        )
+        choice = resp["choices"][0] if isinstance(resp, dict) else resp.choices[0]
+        if isinstance(choice, dict):
+            text = (choice.get("message", {}) or {}).get("content") or choice.get("text", "")
+        else:
+            text = getattr(getattr(choice, "message", None), "content", None) or getattr(choice, "text", "")
+        usage = resp.get("usage") if isinstance(resp, dict) else None
+        return (text or "").strip(), usage
 
 
 class LocalAdapter(BaseAdapter):
