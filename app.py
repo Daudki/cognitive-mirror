@@ -2,8 +2,9 @@
 """Cognitive Mirror web app — local ML first, optional LLM for mind-state prose."""
 
 import os
+import sys
 from pathlib import Path
-
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 from flask import Flask, jsonify, render_template, request
 
 from cognitive_mirror.models.manager import ModelManager
