@@ -2,17 +2,15 @@
 """Cognitive Mirror web app — local ML first, optional LLM for mind-state prose."""
 
 import os
-import sys
 from pathlib import Path
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+
 from flask import Flask, jsonify, render_template, request
 
 from cognitive_mirror.models.manager import ModelManager
 from cognitive_mirror.services.cache import CacheService
 from cognitive_mirror.services.predictor import PredictorService
 from cognitive_mirror.services.review import approve_case, list_approved, list_pending, submit_case
-
-app = Flask(__name__, static_folder="static", template_folder="templates")
+app = Flask(__name__)
 
 BASE_DIR = Path(__file__).resolve().parent
 MODEL_DIR = BASE_DIR / "models"

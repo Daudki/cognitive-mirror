@@ -10,7 +10,6 @@ prometheus-client
 redis
 pytest
 datasets
-# Optional: only needed when LLM_PROVIDER=api
 openai>=1.0.0
 
 gunicorn==21.2.0
