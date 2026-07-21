@@ -1,14 +1,5 @@
-document.addEventListener('DOMContentLoaded', function() {
-    //Current year for the footer
-    let year = document.getElementById("year");
-    year.textContent = new Date().getFullYear();
-
-    let output = document.getElementById("output");
-    let thought = document.getElementById("thought").value();
-
-    if (!thought) {
-        output.classList.add("hidden");
-    } else {
-        continue;
-    }
-});
+/* This file has been intentionally emptied.
+ * The app's frontend logic lives entirely in static/script.js,
+ * which is loaded from the HTML template via Flask's url_for.
+ * This duplicate was dead, broken code and is no longer needed.
+ */

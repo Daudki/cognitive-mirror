@@ -17,12 +17,12 @@ class PredictRequestSchema(Schema):
     )
     
     include_explanation = fields.Boolean(
-        missing=False,
+        load_default=False,
         metadata={"description": "Whether to generate LIME/SHAP explanation"},
     )
     
     model_version = fields.String(
-        missing=None,
+        load_default=None,
         validate=validate.Length(max=50),
         metadata={"description": "Specific model version tag (optional)"},
     )
@@ -43,6 +43,6 @@ class BatchPredictRequestSchema(Schema):
     )
     
     include_explanation = fields.Boolean(
-        missing=False,
+        load_default=False,
         metadata={"description": "Generate explanations for each prediction"},
     )

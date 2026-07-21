@@ -3,83 +3,320 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cognitive Mirror - Mind State Analyzer</title>
+    <title>Cognitive Mirror — Understand your thinking</title>
+    <meta name="description" content="A private tool for reflection. Analyze your writing for emotion, sentiment, and cognitive patterns.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <!-- SVG gradient definitions used by animated rings -->
+    <svg style="position: absolute; width: 0; height: 0;" aria-hidden="true">
+        <defs>
+            <linearGradient id="emotionGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#6366f1" />
+                <stop offset="50%" stop-color="#8b5cf6" />
+                <stop offset="100%" stop-color="#a855f7" />
+            </linearGradient>
+            <linearGradient id="sentimentPositive" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#10b981" />
+                <stop offset="100%" stop-color="#059669" />
+            </linearGradient>
+            <linearGradient id="sentimentNeutral" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#f59e0b" />
+                <stop offset="100%" stop-color="#d97706" />
+            </linearGradient>
+            <linearGradient id="sentimentNegative" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#ef4444" />
+                <stop offset="100%" stop-color="#dc2626" />
+            </linearGradient>
+        </defs>
+    </svg>
 </head>
 
 <body>
-    <header class="header">
-        <div class="header-content">
-            <h1 class="logo">🧠 Cognitive Mirror</h1>
-            <p class="tagline">Discover your mental state through AI analysis</p>
-        </div>
-    </header>
+    <!-- Particle background canvas -->
+    <canvas id="particles-canvas" class="particles-canvas" aria-hidden="true"></canvas>
 
-    <main class="main">
-        <section class="container">
-            <div class="input-section">
-                <form id="mind-form" class="form">
-                    <div class="form-group">
-                        <label for="thought" class="form-label">What's on your mind?</label>
-                        <textarea 
-                            id="thought" 
-                            name="text" 
-                            class="textarea"
-                            placeholder="Enter a thought, emotion, or feeling..."></textarea>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Analyze Mind State</button>
-                </form>
-            </div>
-
-            <div class="output-section" id="output-section">
-                <div class="box" id="output">
-                    {% if result %}
-                        <div class="result-content">
-                            <h2>Analysis Results</h2>
-                            <div class="result-grid">
-                                <div class="result-card emotion-card">
-                                    <div class="result-label">Emotion</div>
-                                    <div class="result-value">{{ result.emotion | capitalize }}</div>
-                                </div>
-                                <div class="result-card sentiment-card">
-                                    <div class="result-label">Sentiment</div>
-                                    <div class="result-value">{{ result.sentiment | capitalize }}</div>
-                                </div>
-                                <div class="result-card confidence-card">
-                                    <div class="result-label">Confidence</div>
-                                    <div class="result-value">{{ (result.confidence * 100) | int }}% {% if result.confidence < 0.5 %}<span class="tentative">(Tentative)</span>{% endif %}</div>
-                                </div>
-                            </div>
-                            <div class="mind-state-box">
-                                <div class="mind-state-label">Mind State</div>
-                                <p class="mind-state-text">{{ result.mind_state }}</p>
-                            </div>
-                            {% if result.top_emotions %}
-                                <div class="top-emotions">
-                                    <h3>Top Emotions</h3>
-                                    <ul>
-                                        {% for e in result.top_emotions %}
-                                            <li>{{ e.emotion }} — {{ (e.probability * 100) | round(1) }}%</li>
-                                        {% endfor %}
-                                    </ul>
-                                </div>
-                            {% endif %}
-                        </div>
-                    {% else %}
-                        <div class="empty-state">
-                            <div class="empty-icon">✨</div>
-                            <h3>Start Analyzing</h3>
-                            <p>Enter your thoughts to discover your mental state</p>
-                        </div>
-                    {% endif %}
+    <!-- ==================== AUTH VIEW ==================== -->
+    <div id="auth-view" class="auth-view">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="auth-logo">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="7" r="3" stroke="currentColor" stroke-width="1.8"/>
+                        <circle cx="5" cy="17" r="3" stroke="currentColor" stroke-width="1.8"/>
+                        <circle cx="19" cy="17" r="3" stroke="currentColor" stroke-width="1.8"/>
+                        <path d="M10.5 9.5L6.5 15.5" stroke="currentColor" stroke-width="1.5" opacity="0.6"/>
+                        <path d="M13.5 9.5L17.5 15.5" stroke="currentColor" stroke-width="1.5" opacity="0.6"/>
+                        <path d="M7.5 18H16.5" stroke="currentColor" stroke-width="1.5" opacity="0.4"/>
+                    </svg>
                 </div>
+                <h1 class="auth-title">Cognitive Mirror</h1>
+                <p class="auth-subtitle">A private space to understand your thinking patterns through AI-powered reflection.</p>
             </div>
-        </section>
-    </main>
 
-    <footer class="footer">
-        <p>&copy; <span id="year"></span> Cognitive Mirror. All Rights Reserved.</p>
-    </footer>
+            <div class="auth-tabs">
+                <button class="auth-tab active" data-tab="login" type="button">Sign in</button>
+                <button class="auth-tab" data-tab="register" type="button">Create account</button>
+            </div>
+
+            <form id="login-form" class="auth-panel">
+                <div class="field">
+                    <label class="field-label" for="login-email">Email</label>
+                    <input class="text-input" type="email" id="login-email" required autocomplete="email" placeholder="you@example.com">
+                </div>
+                <div class="field">
+                    <label class="field-label" for="login-password">Password</label>
+                    <input class="text-input" type="password" id="login-password" required autocomplete="current-password" placeholder="Enter your password">
+                </div>
+                <p class="form-error" id="login-error"></p>
+                <button type="submit" class="btn btn-primary">Sign in</button>
+            </form>
+
+            <form id="register-form" class="auth-panel hidden">
+                <div class="field">
+                    <label class="field-label" for="register-email">Email</label>
+                    <input class="text-input" type="email" id="register-email" required autocomplete="email" placeholder="you@example.com">
+                </div>
+                <div class="field">
+                    <label class="field-label" for="register-password">Password</label>
+                    <input class="text-input" type="password" id="register-password" required minlength="8" autocomplete="new-password" placeholder="At least 8 characters">
+                    <p class="field-hint">Your entries are encrypted and private to your account.</p>
+                </div>
+                <p class="form-error" id="register-error"></p>
+                <button type="submit" class="btn btn-primary">Create account</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ==================== APP VIEW ==================== -->
+    <div id="app-view" class="hidden">
+        <!-- Sidebar overlay (mobile) -->
+        <div id="sidebar-overlay" class="sidebar-overlay" aria-hidden="true"></div>
+
+        <!-- Sidebar -->
+        <aside id="sidebar" class="sidebar" aria-label="Main navigation">
+            <a href="/" class="sidebar-logo" aria-label="Cognitive Mirror home">
+                <svg class="logo-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <circle cx="12" cy="7" r="3" stroke="currentColor" stroke-width="1.8"/>
+                    <circle cx="5" cy="17" r="3" stroke="currentColor" stroke-width="1.8"/>
+                    <circle cx="19" cy="17" r="3" stroke="currentColor" stroke-width="1.8"/>
+                    <path d="M10.5 9.5L6.5 15.5" stroke="currentColor" stroke-width="1.5" opacity="0.6"/>
+                    <path d="M13.5 9.5L17.5 15.5" stroke="currentColor" stroke-width="1.5" opacity="0.6"/>
+                    <path d="M7.5 18H16.5" stroke="currentColor" stroke-width="1.5" opacity="0.4"/>
+                </svg>
+                <span class="logo-text">Cognitive Mirror</span>
+            </a>
+
+            <nav class="sidebar-nav">
+                <button class="sidebar-link active" data-lens="mirror" data-nav="mirror" type="button">
+                    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                        <circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/>
+                        <circle cx="10" cy="10" r="3" fill="currentColor" opacity="0.4"/>
+                    </svg>
+                    <span class="link-text">The Mirror</span>
+                </button>
+                <button class="sidebar-link" data-lens="sherlock" data-nav="sherlock" type="button">
+                    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                        <path d="M3 17L8 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.5"/>
+                        <path d="M15 11L18 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                    <span class="link-text">Sherlock Lens</span>
+                </button>
+                <button class="sidebar-link" data-nav="history" type="button">
+                    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                        <circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/>
+                        <path d="M10 6V10L13 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                    <span class="link-text">History</span>
+                </button>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="sidebar-user">
+                    <div class="sidebar-user-avatar" id="sidebar-avatar" aria-hidden="true"></div>
+                    <div class="sidebar-user-info">
+                        <span class="sidebar-user-email" id="sidebar-email"></span>
+                    </div>
+                </div>
+                <button class="sidebar-theme-toggle" id="theme-toggle" type="button" aria-label="Toggle theme">
+                    <svg class="theme-icon-light" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                        <circle cx="8" cy="8" r="3" stroke="currentColor" stroke-width="1.5"/>
+                        <path d="M8 1V3M8 13V15M1 8H3M13 8H15M3.05 3.05L4.46 4.46M11.54 11.54L12.95 12.95M3.05 12.95L4.46 11.54M11.54 4.46L12.95 3.05" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                    <svg class="theme-icon-dark hidden" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                        <path d="M13.5 8.5C12.2 10.3 10 11.5 7.5 11.5C4.5 11.5 2 9 2 6C2 4.5 2.5 3.2 3.5 2.2C1.8 3.2 0.5 5 0.5 7C0.5 10 3 12.5 6 12.5C9 12.5 11.5 10 11.5 7C11.5 6 11.3 5.1 11 4.2C12.5 5 13.5 6.6 13.5 8.5Z" fill="currentColor"/>
+                    </svg>
+                    <span class="link-text">Toggle theme</span>
+                </button>
+                <button class="sidebar-link" id="logout-sidebar-btn" type="button">
+                    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                        <path d="M7 17H4C3.45 17 3 16.55 3 16V4C3 3.45 3.45 3 4 3H7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        <path d="M13 14L17 10L13 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M17 10H7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                    <span class="link-text">Sign out</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Sidebar collapse button (desktop) -->
+        <button id="sidebar-collapse-btn" class="sidebar-collapse-btn" type="button" aria-label="Toggle sidebar">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                <path d="M4 2L8 6L4 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </button>
+
+        <!-- Main content area -->
+        <div class="main-content">
+            <!-- Top header (mobile only) -->
+            <header class="top-header">
+                <button id="mobile-menu-btn" class="btn-icon" type="button" aria-label="Open menu">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <path d="M3 5H17M3 10H17M3 15H17" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                    </svg>
+                </button>
+                <span style="font-weight:700; font-size:0.95rem; letter-spacing:-0.01em;">Cognitive Mirror</span>
+                <div style="width:36px;"></div>
+            </header>
+
+            <main class="main-inner" id="main-inner">
+                <!-- ==================== MIRROR LENS ==================== -->
+                <div id="mirror-lens" class="lens-panel">
+                    <!-- Input card -->
+                    <div class="glass-card input-card stagger-1">
+                        <form id="mind-form">
+                            <div class="field">
+                                <label for="thought" class="field-label">What's on your mind?</label>
+                                <textarea
+                                    id="thought"
+                                    name="text"
+                                    class="textarea"
+                                    maxlength="1000"
+                                    placeholder="Write freely. The Mirror analyzes your entry for emotion, sentiment, and thinking patterns worth noticing."
+                                    aria-describedby="char-counter"></textarea>
+                                <span id="char-counter" class="char-counter">1000 characters remaining</span>
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                                    <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/>
+                                    <circle cx="8" cy="8" r="2" fill="currentColor"/>
+                                </svg>
+                                Reflect
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Results output area -->
+                    <div class="output-section" id="output-section">
+                        <div class="glass-card" id="output">
+                            <div class="empty-state">
+                                <div class="empty-icon">
+                                    <svg width="56" height="56" viewBox="0 0 56 56" fill="none" aria-hidden="true">
+                                        <circle cx="28" cy="28" r="22" stroke="currentColor" stroke-width="1.5" opacity="0.2"/>
+                                        <circle cx="28" cy="28" r="14" stroke="currentColor" stroke-width="1.5" opacity="0.4"/>
+                                        <circle cx="28" cy="28" r="5" fill="currentColor" opacity="0.6"/>
+                                    </svg>
+                                </div>
+                                <h3>Begin your reflection</h3>
+                                <p>Write an entry above to see what the Mirror notices about your emotional state and thinking patterns.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Entry history -->
+                    <div class="history-section stagger-4">
+                        <div class="section-header">
+                            <h2>Recent entries</h2>
+                            <button id="refresh-entries" class="btn btn-ghost btn-sm">Refresh</button>
+                        </div>
+                        <div id="entries-list" class="timeline">
+                            <p class="text-muted text-center" style="padding: var(--space-xl) 0;">No entries yet. Your reflections will appear here.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ==================== SHERLOCK LENS ==================== -->
+                <div id="sherlock-lens" class="lens-panel hidden">
+                    <div class="glass-card sherlock-card stagger-1">
+                        <div class="sherlock-header">
+                            <div>
+                                <h2>Pattern analysis</h2>
+                                <p class="sherlock-desc">
+                                    The Sherlock Lens examines your entry history for patterns you
+                                    might not notice yourself — distortions trending up, emotional shifts,
+                                    or topics that stopped appearing. Every finding cites the entries it's based on.
+                                </p>
+                            </div>
+                            <span class="badge">Across all entries</span>
+                        </div>
+                        <button id="generate-insights" class="btn btn-secondary">
+                            <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                <path d="M3 17L8 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.5"/>
+                            </svg>
+                            Run analysis
+                        </button>
+                        <p class="field-hint" id="sherlock-hint">Needs at least 4 entries before patterns become visible.</p>
+                    </div>
+                    <div id="insights-list" class="insights-list"></div>
+                </div>
+
+                <!-- ==================== HISTORY VIEW ==================== -->
+                <div id="history-lens" class="lens-panel hidden">
+                    <div class="section-header stagger-1">
+                        <h2>Your timeline</h2>
+                        <button id="refresh-entries-history" class="btn btn-ghost btn-sm">Refresh</button>
+                    </div>
+                    <div id="entries-timeline" class="timeline">
+                        <p class="text-muted text-center" style="padding: var(--space-xl) 0;">No entries yet.</p>
+                    </div>
+                </div>
+            </main>
+
+            <footer class="footer">
+                <p>&copy; <span id="year"></span> Cognitive Mirror &middot; A private tool for reflection, not a diagnosis.</p>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Toast container -->
+    <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+    <!-- Keyboard shortcuts modal (hidden by default) -->
+    <div id="shortcuts-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="shortcuts-title">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title" id="shortcuts-title">Keyboard shortcuts</h2>
+                <button id="close-shortcuts" class="btn-icon" type="button" aria-label="Close">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M4 4L12 12M12 4L4 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="kbd-shortcut">
+                <span>Submit entry</span>
+                <span class="kbd-keys"><kbd class="kbd">⌘</kbd><kbd class="kbd">↵</kbd></span>
+            </div>
+            <div class="kbd-shortcut">
+                <span>Toggle theme</span>
+                <span class="kbd-keys"><kbd class="kbd">⌘</kbd><kbd class="kbd">T</kbd></span>
+            </div>
+            <div class="kbd-shortcut">
+                <span>Toggle sidebar</span>
+                <span class="kbd-keys"><kbd class="kbd">⌘</kbd><kbd class="kbd">B</kbd></span>
+            </div>
+            <div class="kbd-shortcut">
+                <span>Close modal</span>
+                <span class="kbd-keys"><kbd class="kbd">Esc</kbd></span>
+            </div>
+            <div class="kbd-shortcut">
+                <span>Show shortcuts</span>
+                <span class="kbd-keys"><kbd class="kbd">?</kbd></span>
+            </div>
+        </div>
+    </div>
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>

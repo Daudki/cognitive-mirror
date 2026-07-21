@@ -1,0 +1,234 @@
+text,emotion,sentiment,clean_text
+I am very happy today,joy,positive,happy today
+I feel completely lost and confused,neutral,negative,feel completely lost confused
+I am okay just normal day,neutral,neutral,okay normal day
+I love solving hard problems,joy,positive,love solving hard problems
+I don't know what is happening anymore,neutral,negative,dont know happening anymore
+I feel calm and focused,neutral,positive,feel calm focused
+I am angry about this situation,anger,negative,angry situation
+Everything is going wrong today,sadness,negative,everything going wrong today
+I just got promoted at work,joy,positive,got promoted work
+This is the worst day ever,sadness,negative,worst day ever
+I feel excited about tomorrow,joy,positive,feel excited tomorrow
+I'm worried something bad will happen,neutral,negative,im worried something bad happen
+Nothing seems to matter anymore,sadness,negative,nothing seems matter anymore
+I just finished a great project,joy,positive,finished great project
+I can't handle this pressure,neutral,negative,cant handle pressure
+Life is pretty good right now,neutral,positive,life pretty good right
+I'm seething about what happened,anger,negative,im seething happened
+I feel disconnected from everything,sadness,negative,feel disconnected everything
+I'm looking forward to the weekend,joy,positive,im looking forward weekend
+I don't trust what they're saying,neutral,negative,dont trust theyre saying
+I'm thrilled beyond measure,joy,positive,im thrilled beyond measure
+Everything feels uncertain and scary,neutral,negative,everything feels uncertain scary
+I feel like I'm failing at everything,sadness,negative,feel like im failing everything
+I'm so frustrated I could scream,anger,negative,im frustrated could scream
+Today was surprisingly wonderful,joy,positive,today surprisingly wonderful
+I'm afraid of what might happen,neutral,negative,im afraid might happen
+I feel empty and lost inside,sadness,negative,feel empty lost inside
+This is absolutely unacceptable,anger,negative,absolutely unacceptable
+I'm so happy I could dance,joy,positive,im happy could dance
+I dread what comes next,neutral,negative,dread comes next
+I want to build a great kingdom but i have no consistency and no pc while i am a computer science student,anger,neutral,want build great kingdom no consistency no pc computer science student
+I feel like I'm on top of the world today,joy,positive,feel like im top world today
+This project is going to change everything,joy,positive,project going change everything
+I'm so tired of pretending everything is fine,neutral,negative,im tired pretending everything fine
+The future feels so uncertain and overwhelming,fear,negative,future feels uncertain overwhelming
+I accomplished something amazing today,joy,positive,accomplished something amazing today
+Nothing I do ever seems to work out,sadness,negative,nothing ever seems work
+I'm grateful for the small moments of joy,joy,positive,im grateful small moments joy
+This situation is completely unfair,neutral,negative,situation completely unfair
+I feel completely disconnected from reality,neutral,neutral,feel completely disconnected reality
+My heart is full of love and warmth,joy,positive,heart full love warmth
+I'm terrified of making the wrong decision,fear,negative,im terrified making wrong decision
+Today brought unexpected peace and clarity,neutral,positive,today brought unexpected peace clarity
+I can't stop thinking about what went wrong,neutral,negative,cant stop thinking went wrong
+I'm inspired to create something beautiful,neutral,positive,im inspired create something beautiful
+This constant pressure is breaking me down,fear,negative,constant pressure breaking down
+I feel truly understood and valued,neutral,positive,feel truly understood valued
+The world feels cold and indifferent,neutral,negative,world feels cold indifferent
+I'm excited about learning something new,neutral,positive,im excited learning something new
+This betrayal cuts deeper than I thought,neutral,negative,betrayal cuts deeper thought
+I find comfort in routine and familiarity,joy,positive,find comfort routine familiarity
+I'm angry at myself for not doing better,neutral,negative,im angry not better
+Every day brings new possibilities,joy,positive,every day brings new possibilities
+I feel trapped with no way out,neutral,negative,feel trapped no way
+I'm proud of how far I've come,neutral,positive,im proud far ive come
+This loneliness is consuming me,sadness,negative,loneliness consuming
+I wake up excited for what today holds,joy,positive,wake up excited today holds
+I'm disappointed in how things turned out,sadness,negative,im disappointed things turned
+My creativity is flowing like never before,neutral,positive,creativity flowing like never
+I feel judged and misunderstood,neutral,negative,feel judged misunderstood
+Life feels balanced and harmonious,neutral,positive,life feels balanced harmonious
+I'm resentful about past injustices,anger,negative,im resentful past injustices
+I feel empowered and capable,neutral,positive,feel empowered capable
+This grief is heavier than I can bear,sadness,negative,grief heavier bear
+I'm motivated to make positive changes,neutral,positive,im motivated make positive changes
+I feel worthless and insignificant,neutral,negative,feel worthless insignificant
+Every challenge feels like an opportunity,neutral,positive,every challenge feels like opportunity
+I'm consumed by jealousy and envy,neutral,negative,im consumed jealousy envy
+I feel deeply connected to something greater,neutral,positive,feel deeply connected something greater
+This rejection confirms my worst fears,neutral,negative,rejection confirms worst fears
+I'm passionate about making a difference,neutral,positive,im passionate making difference
+I feel numb and emotionally drained,neutral,negative,feel numb emotionally drained
+Today feels like a fresh start,neutral,positive,today feels like fresh start
+I'm haunted by memories I can't escape,neutral,negative,im haunted memories cant escape
+I feel appreciated and valued by others,neutral,positive,feel appreciated valued others
+This failure defines who I am,neutral,negative,failure defines
+I'm optimistic about our shared future,neutral,positive,im optimistic shared future
+I feel invisible and forgotten,neutral,negative,feel invisible forgotten
+My heart overflows with compassion,neutral,positive,heart overflows compassion
+I'm suspicious of everyone's motives,neutral,negative,im suspicious everyones motives
+I feel alive and present in this moment,neutral,positive,feel alive present moment
+This guilt is eating me alive,neutral,negative,guilt eating alive
+I'm enthusiastic about collaborating,neutral,positive,im enthusiastic collaborating
+I feel exposed and unprotected,neutral,negative,feel exposed unprotected
+Every day teaches me something valuable,neutral,positive,every day teaches something valuable
+I'm bitter about opportunities lost,neutral,negative,im bitter opportunities lost
+I feel supported and loved unconditionally,neutral,positive,feel supported loved unconditionally
+This shame burns deep within me,neutral,negative,shame burns deep within
+I'm committed to personal growth,neutral,positive,im committed personal growth
+I feel controlled and manipulated,neutral,negative,feel controlled manipulated
+My enthusiasm is contagious,neutral,positive,enthusiasm contagious
+I'm cynical about people's intentions,neutral,negative,im cynical peoples intentions
+I feel grounded and centered,neutral,positive,feel grounded centered
+This rage consumes my thoughts,anger,negative,rage consumes thoughts
+I'm passionate about justice and fairness,neutral,positive,im passionate justice fairness
+I feel betrayed and stabbed in the back,neutral,negative,feel betrayed stabbed back
+I am a hundred percent sure and confident,neutral,positive,hundred percent sure confident
+I have complete confidence in this decision,neutral,positive,complete confidence decision
+I am certain this will succeed,neutral,positive,certain succeed
+I know exactly what I'm doing,neutral,positive,know exactly im
+There's no doubt in my mind,neutral,positive,theres no doubt mind
+I'm 100% convinced this is right,neutral,positive,im convinced right
+I have total faith in myself,neutral,positive,total faith
+This is definitely going to work,joy,positive,definitely going work
+I'm completely certain about my goals,neutral,positive,im completely certain goals
+I know I can handle this,neutral,positive,know handle
+I have no doubts whatsoever,joy,positive,no doubts whatsoever
+This will absolutely happen,neutral,positive,absolutely happen
+I'm convinced beyond any shadow of doubt,neutral,positive,im convinced beyond any shadow doubt
+My conviction is unshakeable,neutral,positive,conviction unshakeable
+I feel sad,sadness,negative,feel sad
+I am feeling sad today,sadness,negative,feeling sad today
+My heart is heavy with sadness,sadness,negative,heart heavy sadness
+I feel so sad I could cry,sadness,negative,feel sad could cry
+This sadness is unbearable,sadness,negative,sadness unbearable
+I'm drowning in sadness,sadness,negative,im drowning sadness
+Everything feels sad and dark,sadness,negative,everything feels sad dark
+This profound sadness won't lift,sadness,negative,profound sadness wont lift
+I am stoic,neutral,neutral,stoic
+I face this with stoicism,neutral,neutral,face stoicism
+I remain stoic in the face of adversity,neutral,neutral,remain stoic face adversity
+My stoic nature helps me endure,neutral,neutral,stoic nature helps endure
+I choose to be stoic about this,neutral,neutral,choose stoic
+Stoicism guides my response,neutral,neutral,stoicism guides response
+I accept this with stoic grace,neutral,neutral,accept stoic grace
+My stoic demeanor masks the pain,neutral,neutral,stoic demeanor masks pain
+I embrace my stoic philosophy,neutral,neutral,embrace stoic philosophy
+This is my stoic path,neutral,neutral,stoic path
+I stand stoic and unmoved,neutral,neutral,stand stoic unmoved
+I am furious about the delay,anger,negative,furious delay
+This makes me sick to my stomach,disgust,negative,makes sick stomach
+Wow I did not see that coming,surprise,neutral,wow not see coming
+I am thrilled we won,joy,positive,thrilled won
+I feel nothing special today,neutral,neutral,feel nothing special today
+I am worried about the exam,neutral,negative,worried exam
+I hate how they spoke to me,anger,negative,hate spoke
+I miss my old friends so much,sadness,negative,miss old friends much
+I am grateful for your help,joy,positive,grateful help
+Stop bothering me,anger,negative,stop bothering
+I am scared to open the results,neutral,negative,scared open results
+That news shocked everyone,surprise,neutral,news shocked everyone
+I feel disgusted by the smell,disgust,negative,feel disgusted smell
+Just another boring meeting,neutral,neutral,another boring meeting
+I am overjoyed at the birth,joy,positive,overjoyed birth
+Crying alone in my room,sadness,negative,crying alone room
+I am panicking about money,neutral,negative,panicking money
+How dare they ignore me,anger,negative,dare ignore
+I feel peaceful watching the sunset,neutral,positive,feel peaceful watching sunset
+I am bored out of my mind,neutral,neutral,bored mind
+I love my partner deeply,joy,positive,love partner deeply
+I am terrified of heights,neutral,negative,terrified heights
+This corruption is revolting,disgust,negative,corruption revolting
+What a pleasant surprise gift,surprise,positive,pleasant surprise gift
+I am miserable and tired,sadness,negative,miserable tired
+I am so mad I could punch a wall,anger,negative,mad could punch wall
+Fine whatever you say,neutral,neutral,fine whatever say
+I am anxious about tomorrow's interview,neutral,negative,anxious tomorrows interview
+Best day of my life,joy,positive,best day life
+I feel empty after the breakup,sadness,negative,feel empty breakup
+That lie makes me nauseous,disgust,negative,lie makes nauseous
+Unbelievable plot twist,surprise,neutral,unbelievable plot twist
+I am not angry just disappointed,sadness,negative,not angry disappointed
+Calm breath in calm breath out,neutral,positive,calm breath calm breath
+I am stressed but coping,neutral,negative,stressed coping
+Ecstatic about the promotion,joy,positive,ecstatic promotion
+I feel hopeless about finding work,sadness,negative,feel hopeless finding work
+Gross mold in the fridge,disgust,negative,gross mold fridge
+Wait what did you just say,surprise,neutral,wait say
+I am enraged at the injustice,anger,negative,enraged injustice
+Okay I guess,neutral,neutral,okay guess
+I am nervous presenting to the class,neutral,negative,nervous presenting class
+Smiling at the puppy video,joy,positive,smiling puppy video
+Tears won't stop falling,sadness,negative,tears wont stop falling
+I am disgusted with myself,disgust,negative,disgusted
+Blindsided by the announcement,surprise,negative,blindsided announcement
+I feel proud of my team,joy,positive,feel proud team
+Road rage on the highway,anger,negative,road rage highway
+Meh indifferent,neutral,neutral,meh indifferent
+I am afraid of failing again,neutral,negative,afraid failing
+Sunshine makes me happy,joy,positive,sunshine makes happy
+Grieving my grandmother,sadness,negative,grieving grandmother
+Repulsed by the violence on screen,disgust,negative,repulsed violence screen
+Didn't expect to enjoy it this much,surprise,positive,didnt expect enjoy much
+I am bitter about the promotion I missed,anger,negative,bitter promotion missed
+Steady and unbothered,neutral,neutral,steady unbothered
+I am shaking before the surgery,neutral,negative,shaking surgery
+Celebrating with friends tonight,joy,positive,celebrating friends tonight
+No one understands my pain,sadness,negative,no one understands pain
+Sickened by the cruelty,disgust,negative,sickened cruelty
+Plot twist ruined the ending for me,surprise,negative,plot twist ruined ending
+I am livid about the broken promise,anger,negative,livid broken promise
+Neither good nor bad just is,neutral,neutral,neither good nor bad
+I am dreading Monday morning,neutral,negative,dreading monday morning
+Heart full after volunteering,joy,positive,heart full volunteering
+Failed again and feel like a loser,sadness,negative,failed feel like loser
+Cannot stand the taste,disgust,negative,cannot stand taste
+Whoa that explosion was loud,surprise,neutral,whoa explosion loud
+I am seething silently,anger,negative,seething silently
+Content with simple pleasures,neutral,positive,content simple pleasures
+Worried sick about my child,neutral,negative,worried sick child
+Jumping for joy at the news,joy,positive,jumping joy news
+Blue mood all week,sadness,negative,blue mood week
+Vile behavior deserves contempt,disgust,negative,vile behavior deserves contempt
+Stunned into silence,surprise,neutral,stunned silence
+I am frustrated the code won't compile,anger,negative,frustrated code wont compile
+Balanced mind clear focus,neutral,positive,balanced mind clear focus
+Scared of the dark hallway,neutral,negative,scared dark hallway
+Grinning ear to ear,joy,positive,grinning ear ear
+Wallowing in self pity,sadness,negative,wallowing self pity
+Ew get that away from me,disgust,negative,ew get away
+Never saw that betrayal coming,surprise,negative,never saw betrayal coming
+I am boiling with rage right now,anger,negative,boiling rage right
+Flat affect no ups no downs,neutral,neutral,flat affect no ups no downs
+Stage fright before the performance,neutral,negative,stage fright performance
+So relieved the test is over,joy,positive,relieved test
+Melancholy autumn weather,sadness,negative,melancholy autumn weather
+Filthy conditions in the shelter,disgust,negative,filthy conditions shelter
+Gasped at the magic trick reveal,surprise,positive,gasped magic trick reveal
+I am not happy about this,sadness,negative,not happy
+This is not good at all,sadness,negative,not good
+I do not feel great,sadness,negative,not feel great
+Not excited for tomorrow,sadness,negative,not excited tomorrow
+I am not okay,sadness,negative,not okay
+Far from happy right now,sadness,negative,far happy right
+I am not proud of what I did,sadness,negative,not proud
+Not a good day for me,sadness,negative,not good day
+I cannot say I am happy,sadness,negative,cannot say happy
+I hate this,anger,negative,hate
+I hate everything right now,anger,negative,hate everything right
+I hate when people lie to me,anger,negative,hate people lie
+I absolutely hate it,anger,negative,absolutely hate
+I hate my job,anger,negative,hate job
+I hate how I feel,sadness,negative,hate feel

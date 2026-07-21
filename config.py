@@ -9,7 +9,21 @@ class Config:
     
     # Security
     SECRET_KEY: str = os.environ.get("SECRET_KEY", "the-outcast-044-machines")
-    
+
+    # Database
+    SQLALCHEMY_DATABASE_URI: str = os.environ.get(
+        "DATABASE_URL", "sqlite:///cognitive_mirror.db"
+    )
+    SQLALCHEMY_TRACK_MODIFICATIONS: bool = False
+
+    # Entry-text encryption at rest (Fernet key; generate with
+    # `python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"`)
+    ENTRY_ENCRYPTION_KEY: str = os.environ.get("ENTRY_ENCRYPTION_KEY", "")
+
+    # Session cookies (API is same-site for now; tighten if a separate frontend domain is added)
+    SESSION_COOKIE_HTTPONLY: bool = True
+    SESSION_COOKIE_SAMESITE: str = "Lax"
+
     # Model
     MODEL_PATH: str = os.environ.get("MODEL_PATH", "models/model.pkl")
     MODEL_VERSION: str = os.environ.get("MODEL_VERSION", "1.0.0")

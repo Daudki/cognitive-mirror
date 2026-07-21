@@ -20,10 +20,13 @@ from ml.labels import map_emotion_label, map_sentiment_label
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 MODEL_DIR = BASE_DIR / "models"
-DATA_PATH = Path(__file__).resolve().parent / "data.csv"
+DATA_PATH = Path(__file__).resolve().parent / "clean_training_data.csv"
+FALLBACK_DATA_PATH = Path(__file__).resolve().parent / "data.csv"
 
 
 def load_local_data(path):
+    if not path.exists():
+        path = FALLBACK_DATA_PATH
     df = pd.read_csv(path)
     df["text"] = df["text"].astype(str).str.strip().str.strip('"').str.strip("'")
     df["emotion"] = df["emotion"].astype(str).str.strip().str.strip('"').str.strip("'")
@@ -31,6 +34,8 @@ def load_local_data(path):
     df["emotion"] = df["emotion"].apply(map_emotion_label)
     df["sentiment"] = df["sentiment"].apply(map_sentiment_label)
     df["clean_text"] = df["text"].apply(clean_text)
+    df = df[df["clean_text"].str.strip() != ""]
+    df = df.drop_duplicates(subset=["clean_text"])
     return df[["clean_text", "emotion", "sentiment"]]
 
 
@@ -98,7 +103,7 @@ def main():
         local_df = pd.concat([local_df] * local_weight, ignore_index=True)
     print(f"Local data: {len(local_df)} samples (weight={local_weight})")
 
-    skip_hf = os.environ.get("TRAIN_SKIP_HF", "").lower() in ("1", "true", "yes")
+    skip_hf = os.environ.get("TRAIN_SKIP_HF", "1").lower() in ("1", "true", "yes")
     hf_df = None if skip_hf else load_huggingface_data()
 
     if hf_df is not None and len(hf_df) > 0:
@@ -106,7 +111,7 @@ def main():
         print(f"Combined data: {len(df)} samples (local + HuggingFace)")
     else:
         df = local_df
-        print("No internet datasets available, using local data only")
+        print("Using local cleaned data only")
 
     df = df.drop_duplicates(subset=["clean_text"])
     df = df[df["clean_text"].str.strip() != ""]

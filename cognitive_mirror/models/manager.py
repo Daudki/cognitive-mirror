@@ -249,11 +249,12 @@ class ModelManager:
         confidence = emotion_result.get("confidence", 0.5)
 
         provider = os.environ.get("LLM_PROVIDER", "dummy").lower().strip()
-        use_llm = provider in ("api", "openai", "local") and (
-            provider != "local" or os.environ.get("LLM_LOCAL_MODEL")
-        )
-        if use_llm and provider in ("api", "openai") and not os.environ.get("OPENAI_API_KEY"):
-            use_llm = False
+        use_llm = provider not in ("", "none", "disabled")
+
+        if provider in ("api", "openai"):
+            use_llm = bool(os.environ.get("OPENAI_API_KEY"))
+        elif provider == "local":
+            use_llm = bool(os.environ.get("LLM_LOCAL_MODEL"))
 
         if not use_llm:
             return cls._template_mind_state(emotion, sentiment, confidence)

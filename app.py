@@ -1,102 +1,43 @@
 #!/usr/bin/env python
-"""Cognitive Mirror web app — local ML first, optional LLM for mind-state prose."""
+"""WSGI entrypoint.
+
+Delegates entirely to the application factory (cognitive_mirror.factory)
+so gunicorn/Procfile/Dockerfile (`app:app`) and local `python app.py`
+both boot the *same* app — auth, entries, Mirror, Sherlock Lens, the
+stateless /predict demo endpoint, health, and metrics.
+
+The previous version of this file defined a second, parallel Flask app
+with only /predict and /review routes and no database — that's been
+retired in favor of the factory so there's a single source of truth.
+"""
 
 import os
+import socket
+import sys
 from pathlib import Path
 
-from flask import Flask, jsonify, render_template, request
+PROJECT_ROOT = Path(__file__).resolve().parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
-from cognitive_mirror.models.manager import ModelManager
-from cognitive_mirror.services.cache import CacheService
-from cognitive_mirror.services.predictor import PredictorService
-from cognitive_mirror.services.review import approve_case, list_approved, list_pending, submit_case
-app = Flask(__name__)
+from cognitive_mirror.factory import create_app
 
-BASE_DIR = Path(__file__).resolve().parent
-MODEL_DIR = BASE_DIR / "models"
+app = create_app(os.environ.get("FLASK_ENV", "development"))
 
 
-def _bootstrap_models() -> None:
-    """Load trained artifacts; required for /predict to work without OpenAI."""
-    checkpoint = MODEL_DIR / "model.pkl"
-    if checkpoint.exists():
-        ModelManager.initialize(str(checkpoint))
-        return
-    ModelManager.initialize(str(MODEL_DIR))
-
-
-_bootstrap_models()
-
-
-@app.route("/")
-def home():
-    return render_template("index.html")
-
-
-@app.route("/predict", methods=["POST"])
-def predict_api():
-    data = request.get_json(silent=True) or {}
-    text = (data.get("text") or "").strip()
-    consent = bool(data.get("consent", False))
-
-    if not text:
-        return jsonify({"error": "No text provided"}), 400
-
-    if not ModelManager.is_healthy():
-        return jsonify({
-            "error": "Local models are not loaded. Run: python -m ml.train",
-        }), 503
-
-    try:
-        service = PredictorService(cache_service=CacheService())
-        result = service.predict(text)
-
-        if consent:
-            submit_case({
-                "text": text,
-                "emotion": result.emotion,
-                "sentiment": result.sentiment,
-                "mind_state": result.mind_state,
-                "consent": True,
-            })
-
-        return jsonify({
-            "emotion": result.emotion.get("emotion"),
-            "sentiment": result.sentiment.get("sentiment"),
-            "confidence": result.emotion.get("confidence"),
-            "mind_state": result.mind_state,
-            "top_emotions": result.emotion.get("top_emotions", []),
-        })
-    except Exception as e:
-        return jsonify({"error": f"Unable to analyze: {str(e)}"}), 500
-
-
-@app.route("/review/pending", methods=["GET"])
-def review_pending():
-    return jsonify({"pending": list_pending()}), 200
-
-
-@app.route("/review/approved", methods=["GET"])
-def review_approved():
-    return jsonify({"approved": list_approved()}), 200
-
-
-@app.route("/review/approve", methods=["POST"])
-def review_approve():
-    data = request.get_json(silent=True) or {}
-    idx = data.get("index")
-    if idx is None:
-        return jsonify({"error": "index is required"}), 400
-    try:
-        idx = int(idx)
-    except (TypeError, ValueError):
-        return jsonify({"error": "index must be an integer"}), 400
-
-    approved = approve_case(idx)
-    if not approved:
-        return jsonify({"error": "invalid index"}), 404
-    return jsonify({"approved": approved}), 200
+def _find_available_port(start_port: int = 5000) -> int:
+    port = start_port
+    while True:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            try:
+                sock.bind(("127.0.0.1", port))
+                return port
+            except OSError:
+                port += 1
 
 
 if __name__ == "__main__":
-    app.run(debug=os.environ.get("FLASK_DEBUG", "1") == "1")
+    port = int(os.environ.get("PORT", 5000))
+    if port == 5000:
+        port = _find_available_port(port)
+    app.run(debug=app.config.get("DEBUG", True), port=port)

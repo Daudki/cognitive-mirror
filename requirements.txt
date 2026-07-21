@@ -4,6 +4,9 @@ scikit-learn
 joblib
 flask
 flask-cors
+flask-sqlalchemy
+flask-migrate
+flask-login
 structlog
 marshmallow
 prometheus-client
@@ -11,5 +14,7 @@ redis
 pytest
 datasets
 openai>=1.0.0
+python-dotenv
+cryptography
 
 gunicorn==21.2.0
