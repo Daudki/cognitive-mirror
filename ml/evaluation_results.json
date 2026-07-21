@@ -1,0 +1,873 @@
+{
+  "emotion_accuracy": 0.29545454545454547,
+  "emotion_precision_macro": 0.13206349206349205,
+  "emotion_recall_macro": 0.18651741633108093,
+  "emotion_f1_macro": 0.1515849741656193,
+  "sentiment_accuracy": 0.4772727272727273,
+  "sentiment_precision_macro": 0.3627232779775153,
+  "sentiment_recall_macro": 0.38265669515669515,
+  "sentiment_f1_macro": 0.3567216201492576,
+  "category_results": {
+    "basic": {
+      "emotion_accuracy": 0.23076923076923078,
+      "sentiment_accuracy": 0.7307692307692307,
+      "n": 26
+    },
+    "negation": {
+      "emotion_accuracy": 0.4166666666666667,
+      "sentiment_accuracy": 0.25,
+      "n": 12
+    },
+    "mixed": {
+      "emotion_accuracy": 0.375,
+      "sentiment_accuracy": 0.875,
+      "n": 8
+    },
+    "ambiguous": {
+      "emotion_accuracy": 0.75,
+      "sentiment_accuracy": 0.0,
+      "n": 8
+    },
+    "sarcasm": {
+      "emotion_accuracy": 0.0,
+      "sentiment_accuracy": 0.5,
+      "n": 6
+    },
+    "short": {
+      "emotion_accuracy": 0.0,
+      "sentiment_accuracy": 0.5,
+      "n": 6
+    },
+    "long": {
+      "emotion_accuracy": 0.3333333333333333,
+      "sentiment_accuracy": 0.6666666666666666,
+      "n": 3
+    },
+    "slang": {
+      "emotion_accuracy": 0.2857142857142857,
+      "sentiment_accuracy": 0.42857142857142855,
+      "n": 7
+    },
+    "edge": {
+      "emotion_accuracy": 0.25,
+      "sentiment_accuracy": 0.16666666666666666,
+      "n": 12
+    }
+  },
+  "class_report": {
+    "anger": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1-score": 0.0,
+      "support": 14.0
+    },
+    "disgust": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1-score": 0.0,
+      "support": 3.0
+    },
+    "fear": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1-score": 0.0,
+      "support": 8.0
+    },
+    "joy": {
+      "precision": 0.2222222222222222,
+      "recall": 0.3076923076923077,
+      "f1-score": 0.25806451612903225,
+      "support": 13.0
+    },
+    "neutral": {
+      "precision": 0.2222222222222222,
+      "recall": 0.47619047619047616,
+      "f1-score": 0.30303030303030304,
+      "support": 21.0
+    },
+    "sadness": {
+      "precision": 0.48,
+      "recall": 0.5217391304347826,
+      "f1-score": 0.5,
+      "support": 23.0
+    },
+    "surprise": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1-score": 0.0,
+      "support": 6.0
+    },
+    "accuracy": 0.29545454545454547,
+    "macro avg": {
+      "precision": 0.13206349206349205,
+      "recall": 0.18651741633108093,
+      "f1-score": 0.1515849741656193,
+      "support": 88.0
+    },
+    "weighted avg": {
+      "precision": 0.2113131313131313,
+      "recall": 0.29545454545454547,
+      "f1-score": 0.24111903492402026,
+      "support": 88.0
+    }
+  },
+  "confusion_matrix": [
+    [
+      0,
+      0,
+      0,
+      3,
+      9,
+      2,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      3,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      1,
+      7,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      4,
+      5,
+      4,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      5,
+      10,
+      6,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      4,
+      7,
+      12,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      1,
+      4,
+      1,
+      0
+    ]
+  ],
+  "labels": [
+    "anger",
+    "disgust",
+    "fear",
+    "joy",
+    "neutral",
+    "sadness",
+    "surprise"
+  ],
+  "failures": [
+    {
+      "text": "I feel amazing and wonderful",
+      "expected_emotion": "joy",
+      "predicted_emotion": "neutral",
+      "expected_sentiment": "positive",
+      "predicted_sentiment": "negative",
+      "confidence": 0.4436,
+      "category": "basic",
+      "emotion_correct": false,
+      "sentiment_correct": false
+    },
+    {
+      "text": "I am heartbroken and devastated",
+      "expected_emotion": "sadness",
+      "predicted_emotion": "neutral",
+      "expected_sentiment": "negative",
+      "predicted_sentiment": "negative",
+      "confidence": 0.2712,
+      "category": "basic",
+      "emotion_correct": false,
+      "sentiment_correct": true
+    },
+    {
+      "text": "I miss the people I love",
+      "expected_emotion": "sadness",
+      "predicted_emotion": "joy",
+      "expected_sentiment": "negative",
+      "predicted_sentiment": "positive",
+      "confidence": 0.5115,
+      "category": "basic",
+      "emotion_correct": false,
+      "sentiment_correct": false
+    },
+    {
+      "text": "I am furious about what happened",
+      "expected_emotion": "anger",
+      "predicted_emotion": "neutral",
+      "expected_sentiment": "negative",
+      "predicted_sentiment": "negative",
+      "confidence": 0.2712,
+      "category": "basic",
+      "emotion_correct": false,
+      "sentiment_correct": true
+    },
+    {
+      "text": "This is completely unacceptable",
+      "expected_emotion": "anger",
+      "predicted_emotion": "neutral",
+      "expected_sentiment": "negative",
+      "predicted_sentiment": "neutral",
+      "confidence": 0.35,
+      "category": "basic",
+      "emotion_correct": false,
+      "sentiment_correct": false
+    },
+    {
+      "text": "I hate how they treated me",
+      "expected_emotion": "anger",
+      "predicted_emotion": "neutral",
+      "expected_sentiment": "negative",
+      "predicted_sentiment": "negative",
+      "confidence": 0.3747,
+      "category": "basic",
+      "emotion_correct": false,
+      "sentiment_correct": true
+    },
+    {
+      "text": "I am so frustrated right now",
+      "expected_emotion": "anger",
+      "predicted_emotion": "neutral",
+      "expected_sentiment": "negative",
+      "predicted_sentiment": "negative",
+      "confidence": 0.3497,
+      "category": "basic",
+      "emotion_correct": false,
+      "sentiment_correct": true
+    },
+    {
+      "text": "I am terrified of what might happen",
+      "expected_emotion": "fear",
+      "predicted_emotion": "neutral",
+      "expected_sentiment": "negative",
+      "predicted_sentiment": "negative",
+      "confidence": 0.3537,
+      "category": "basic",
+      "emotion_correct": false,
+      "sentiment_correct": true
+    },
+    {
+      "text": "I feel so anxious about tomorrow",
+      "expected_emotion": "fear",
+      "predicted_emotion": "neutral",
+      "expected_sentiment": "negative",
+      "predicted_sentiment": "negative",
+      "confidence": 0.3064,
+      "category": "basic",
+      "emotion_correct": false,
+      "sentiment_correct": true
+    },
+    {
+      "text": "I am worried something bad will happen",
+      "expected_emotion": "fear",
+      "predicted_emotion": "neutral",
+      "expected_sentiment": "negative",
+      "predicted_sentiment": "negative",
+      "confidence": 0.3983,
+      "category": "basic",
+      "emotion_correct": false,
+      "sentiment_correct": true
+    },
+    {
+      "text": "I feel panicked and overwhelmed",
+      "expected_emotion": "fear",
+      "predicted_emotion": "neutral",
+      "expected_sentiment": "negative",
+      "predicted_sentiment": "negative",
+      "confidence": 0.4436,
+      "category": "basic",
+      "emotion_correct": false,
+      "sentiment_correct": true
+    },
+    {
+      "text": "That was completely unexpected",
+      "expected_emotion": "surprise",
+      "predicted_emotion": "neutral",
+      "expected_sentiment": "neutral",
+      "predicted_sentiment": "neutral",
+      "confidence": 0.35,
+      "category": "basic",
+      "emotion_correct": false,
+      "sentiment_correct": true
+    },
+    {
+      "text": "I did not see that coming at all",
+      "expected_emotion": "surprise",
+      "predicted_emotion": "sadness",
+      "expected_sentiment": "neutral",
+      "predicted_sentiment": "neutral",
+      "confidence": 0.4422,
+      "category": "basic",
+      "emotion_correct": false,
+      "sentiment_correct": true
+    },
+    {
+      "text": "Wow, what a shock",
+      "expected_emotion": "surprise",
+      "predicted_emotion": "neutral",
+      "expected_sentiment": "neutral",
+      "predicted_sentiment": "negative",
+      "confidence": 0.2712,
+      "category": "basic",
+      "emotion_correct": false,
+      "sentiment_correct": false
+    },
+    {
+      "text": "This is absolutely disgusting",
+      "expected_emotion": "disgust",
+      "predicted_emotion": "neutral",
+      "expected_sentiment": "negative",
+      "predicted_sentiment": "negative",
+      "confidence": 0.3578,
+      "category": "basic",
+      "emotion_correct": false,
+      "sentiment_correct": true
+    },
+    {
+      "text": "I feel sick to my stomach",
+      "expected_emotion": "disgust",
+      "predicted_emotion": "neutral",
+      "expected_sentiment": "negative",
+      "predicted_sentiment": "negative",
+      "confidence": 0.3397,
+      "category": "basic",
+      "emotion_correct": false,
+      "sentiment_correct": true
+    },
+    {
+      "text": "That is revolting",
+      "expected_emotion": "disgust",
+      "predicted_emotion": "neutral",
+      "expected_sentiment": "negative",
+      "predicted_sentiment": "negative",
+      "confidence": 0.2712,
+      "category": "basic",
+      "emotion_correct": false,
+      "sentiment_correct": true
+    },
+    {
+      "text": "Just another ordinary day",
+      "expected_emotion": "neutral",
+      "predicted_emotion": "joy",
+      "expected_sentiment": "neutral",
+      "predicted_sentiment": "positive",
+      "confidence": 0.3328,
+      "category": "basic",
+      "emotion_correct": false,
+      "sentiment_correct": false
+    },
+    {
+      "text": "I am going about my routine",
+      "expected_emotion": "neutral",
+      "predicted_emotion": "joy",
+      "expected_sentiment": "neutral",
+      "predicted_sentiment": "positive",
+      "confidence": 0.3669,
+      "category": "basic",
+      "emotion_correct": false,
+      "sentiment_correct": false
+    },
+    {
+      "text": "Nothing particularly notable happened",
+      "expected_emotion": "neutral",
+      "predicted_emotion": "sadness",
+      "expected_sentiment": "neutral",
+      "predicted_sentiment": "neutral",
+      "confidence": 0.3286,
+      "category": "basic",
+      "emotion_correct": false,
+      "sentiment_correct": true
+    },
+    {
+      "text": "I am not sad at all",
+      "expected_emotion": "joy",
+      "predicted_emotion": "sadness",
+      "expected_sentiment": "positive",
+      "predicted_sentiment": "negative",
+      "confidence": 0.7013,
+      "category": "negation",
+      "emotion_correct": false,
+      "sentiment_correct": false
+    },
+    {
+      "text": "Not a bad day actually",
+      "expected_emotion": "joy",
+      "predicted_emotion": "sadness",
+      "expected_sentiment": "positive",
+      "predicted_sentiment": "neutral",
+      "confidence": 0.4365,
+      "category": "negation",
+      "emotion_correct": false,
+      "sentiment_correct": false
+    },
+    {
+      "text": "I do not hate this",
+      "expected_emotion": "neutral",
+      "predicted_emotion": "sadness",
+      "expected_sentiment": "neutral",
+      "predicted_sentiment": "negative",
+      "confidence": 0.5364,
+      "category": "negation",
+      "emotion_correct": false,
+      "sentiment_correct": false
+    },
+    {
+      "text": "I am not afraid anymore",
+      "expected_emotion": "joy",
+      "predicted_emotion": "sadness",
+      "expected_sentiment": "positive",
+      "predicted_sentiment": "negative",
+      "confidence": 0.4424,
+      "category": "negation",
+      "emotion_correct": false,
+      "sentiment_correct": false
+    },
+    {
+      "text": "Nothing feels right today",
+      "expected_emotion": "sadness",
+      "predicted_emotion": "neutral",
+      "expected_sentiment": "negative",
+      "predicted_sentiment": "positive",
+      "confidence": 0.2851,
+      "category": "negation",
+      "emotion_correct": false,
+      "sentiment_correct": false
+    },
+    {
+      "text": "I never expected this to happen",
+      "expected_emotion": "surprise",
+      "predicted_emotion": "neutral",
+      "expected_sentiment": "neutral",
+      "predicted_sentiment": "positive",
+      "confidence": 0.3504,
+      "category": "negation",
+      "emotion_correct": false,
+      "sentiment_correct": false
+    },
+    {
+      "text": "No one understands me",
+      "expected_emotion": "sadness",
+      "predicted_emotion": "joy",
+      "expected_sentiment": "negative",
+      "predicted_sentiment": "neutral",
+      "confidence": 0.3136,
+      "category": "negation",
+      "emotion_correct": false,
+      "sentiment_correct": false
+    },
+    {
+      "text": "I am excited yet terrified",
+      "expected_emotion": "fear",
+      "predicted_emotion": "joy",
+      "expected_sentiment": "negative",
+      "predicted_sentiment": "negative",
+      "confidence": 0.3026,
+      "category": "mixed",
+      "emotion_correct": false,
+      "sentiment_correct": true
+    },
+    {
+      "text": "I love you but I hate how you make me feel",
+      "expected_emotion": "anger",
+      "predicted_emotion": "neutral",
+      "expected_sentiment": "negative",
+      "predicted_sentiment": "negative",
+      "confidence": 0.3259,
+      "category": "mixed",
+      "emotion_correct": false,
+      "sentiment_correct": true
+    },
+    {
+      "text": "Everything is fine but something feels wrong",
+      "expected_emotion": "fear",
+      "predicted_emotion": "neutral",
+      "expected_sentiment": "negative",
+      "predicted_sentiment": "negative",
+      "confidence": 0.3406,
+      "category": "mixed",
+      "emotion_correct": false,
+      "sentiment_correct": true
+    },
+    {
+      "text": "Good things are happening but I feel numb",
+      "expected_emotion": "sadness",
+      "predicted_emotion": "neutral",
+      "expected_sentiment": "negative",
+      "predicted_sentiment": "negative",
+      "confidence": 0.3594,
+      "category": "mixed",
+      "emotion_correct": false,
+      "sentiment_correct": true
+    },
+    {
+      "text": "I am grateful but also deeply sad",
+      "expected_emotion": "sadness",
+      "predicted_emotion": "joy",
+      "expected_sentiment": "negative",
+      "predicted_sentiment": "positive",
+      "confidence": 0.3468,
+      "category": "mixed",
+      "emotion_correct": false,
+      "sentiment_correct": false
+    },
+    {
+      "text": "The weather is cloudy today",
+      "expected_emotion": "neutral",
+      "predicted_emotion": "joy",
+      "expected_sentiment": "neutral",
+      "predicted_sentiment": "positive",
+      "confidence": 0.5328,
+      "category": "ambiguous",
+      "emotion_correct": false,
+      "sentiment_correct": false
+    },
+    {
+      "text": "I have a meeting tomorrow",
+      "expected_emotion": "neutral",
+      "predicted_emotion": "joy",
+      "expected_sentiment": "neutral",
+      "predicted_sentiment": "negative",
+      "confidence": 0.2906,
+      "category": "ambiguous",
+      "emotion_correct": false,
+      "sentiment_correct": false
+    },
+    {
+      "text": "Oh great, another problem to deal with",
+      "expected_emotion": "anger",
+      "predicted_emotion": "joy",
+      "expected_sentiment": "negative",
+      "predicted_sentiment": "neutral",
+      "confidence": 0.2937,
+      "category": "sarcasm",
+      "emotion_correct": false,
+      "sentiment_correct": false
+    },
+    {
+      "text": "Yeah, that is exactly what I needed today",
+      "expected_emotion": "anger",
+      "predicted_emotion": "joy",
+      "expected_sentiment": "negative",
+      "predicted_sentiment": "positive",
+      "confidence": 0.5328,
+      "category": "sarcasm",
+      "emotion_correct": false,
+      "sentiment_correct": false
+    },
+    {
+      "text": "Wonderful, just wonderful",
+      "expected_emotion": "anger",
+      "predicted_emotion": "neutral",
+      "expected_sentiment": "negative",
+      "predicted_sentiment": "negative",
+      "confidence": 0.2712,
+      "category": "sarcasm",
+      "emotion_correct": false,
+      "sentiment_correct": true
+    },
+    {
+      "text": "Thanks for nothing",
+      "expected_emotion": "anger",
+      "predicted_emotion": "sadness",
+      "expected_sentiment": "negative",
+      "predicted_sentiment": "neutral",
+      "confidence": 0.3286,
+      "category": "sarcasm",
+      "emotion_correct": false,
+      "sentiment_correct": false
+    },
+    {
+      "text": "I am fine, everything is fine",
+      "expected_emotion": "sadness",
+      "predicted_emotion": "neutral",
+      "expected_sentiment": "negative",
+      "predicted_sentiment": "negative",
+      "confidence": 0.2925,
+      "category": "sarcasm",
+      "emotion_correct": false,
+      "sentiment_correct": true
+    },
+    {
+      "text": "Perfect, another deadline missed",
+      "expected_emotion": "anger",
+      "predicted_emotion": "neutral",
+      "expected_sentiment": "negative",
+      "predicted_sentiment": "negative",
+      "confidence": 0.2712,
+      "category": "sarcasm",
+      "emotion_correct": false,
+      "sentiment_correct": true
+    },
+    {
+      "text": "Help",
+      "expected_emotion": "fear",
+      "predicted_emotion": "neutral",
+      "expected_sentiment": "negative",
+      "predicted_sentiment": "negative",
+      "confidence": 0.2712,
+      "category": "short",
+      "emotion_correct": false,
+      "sentiment_correct": true
+    },
+    {
+      "text": "No",
+      "expected_emotion": "anger",
+      "predicted_emotion": "joy",
+      "expected_sentiment": "negative",
+      "predicted_sentiment": "neutral",
+      "confidence": 0.3136,
+      "category": "short",
+      "emotion_correct": false,
+      "sentiment_correct": false
+    },
+    {
+      "text": "Yes",
+      "expected_emotion": "joy",
+      "predicted_emotion": "neutral",
+      "expected_sentiment": "positive",
+      "predicted_sentiment": "negative",
+      "confidence": 0.2712,
+      "category": "short",
+      "emotion_correct": false,
+      "sentiment_correct": false
+    },
+    {
+      "text": "Why",
+      "expected_emotion": "sadness",
+      "predicted_emotion": "neutral",
+      "expected_sentiment": "negative",
+      "predicted_sentiment": "negative",
+      "confidence": 0.2712,
+      "category": "short",
+      "emotion_correct": false,
+      "sentiment_correct": true
+    },
+    {
+      "text": "Stop",
+      "expected_emotion": "anger",
+      "predicted_emotion": "neutral",
+      "expected_sentiment": "negative",
+      "predicted_sentiment": "negative",
+      "confidence": 0.2915,
+      "category": "short",
+      "emotion_correct": false,
+      "sentiment_correct": true
+    },
+    {
+      "text": "Wow",
+      "expected_emotion": "surprise",
+      "predicted_emotion": "neutral",
+      "expected_sentiment": "neutral",
+      "predicted_sentiment": "negative",
+      "confidence": 0.2712,
+      "category": "short",
+      "emotion_correct": false,
+      "sentiment_correct": false
+    },
+    {
+      "text": "I have been thinking about everything that happened over the past few months and I realize that despite all the challenges and difficulties, I have grown so much as a person and I am genuinely proud of how far I have come",
+      "expected_emotion": "joy",
+      "predicted_emotion": "sadness",
+      "expected_sentiment": "positive",
+      "predicted_sentiment": "positive",
+      "confidence": 0.3851,
+      "category": "long",
+      "emotion_correct": false,
+      "sentiment_correct": true
+    },
+    {
+      "text": "The way they handled the entire situation was completely unprofessional and disrespectful and I am tired of being treated like my concerns do not matter",
+      "expected_emotion": "anger",
+      "predicted_emotion": "sadness",
+      "expected_sentiment": "negative",
+      "predicted_sentiment": "negative",
+      "confidence": 0.4414,
+      "category": "long",
+      "emotion_correct": false,
+      "sentiment_correct": true
+    },
+    {
+      "text": "feeling kinda meh today",
+      "expected_emotion": "sadness",
+      "predicted_emotion": "joy",
+      "expected_sentiment": "negative",
+      "predicted_sentiment": "positive",
+      "confidence": 0.5328,
+      "category": "slang",
+      "emotion_correct": false,
+      "sentiment_correct": false
+    },
+    {
+      "text": "this is lit",
+      "expected_emotion": "joy",
+      "predicted_emotion": "neutral",
+      "expected_sentiment": "positive",
+      "predicted_sentiment": "negative",
+      "confidence": 0.2712,
+      "category": "slang",
+      "emotion_correct": false,
+      "sentiment_correct": false
+    },
+    {
+      "text": "ugh can't deal with this rn",
+      "expected_emotion": "anger",
+      "predicted_emotion": "neutral",
+      "expected_sentiment": "negative",
+      "predicted_sentiment": "negative",
+      "confidence": 0.3399,
+      "category": "slang",
+      "emotion_correct": false,
+      "sentiment_correct": true
+    },
+    {
+      "text": "feeling blessed fr",
+      "expected_emotion": "joy",
+      "predicted_emotion": "neutral",
+      "expected_sentiment": "positive",
+      "predicted_sentiment": "negative",
+      "confidence": 0.2712,
+      "category": "slang",
+      "emotion_correct": false,
+      "sentiment_correct": false
+    },
+    {
+      "text": "lowkey stressed but we move",
+      "expected_emotion": "fear",
+      "predicted_emotion": "neutral",
+      "expected_sentiment": "negative",
+      "predicted_sentiment": "negative",
+      "confidence": 0.2712,
+      "category": "slang",
+      "emotion_correct": false,
+      "sentiment_correct": true
+    },
+    {
+      "text": "I feel nothing",
+      "expected_emotion": "neutral",
+      "predicted_emotion": "sadness",
+      "expected_sentiment": "neutral",
+      "predicted_sentiment": "negative",
+      "confidence": 0.3647,
+      "category": "edge",
+      "emotion_correct": false,
+      "sentiment_correct": false
+    },
+    {
+      "text": "I am beyond words",
+      "expected_emotion": "surprise",
+      "predicted_emotion": "joy",
+      "expected_sentiment": "neutral",
+      "predicted_sentiment": "positive",
+      "confidence": 0.3086,
+      "category": "edge",
+      "emotion_correct": false,
+      "sentiment_correct": false
+    },
+    {
+      "text": "I do not know how I feel",
+      "expected_emotion": "neutral",
+      "predicted_emotion": "sadness",
+      "expected_sentiment": "neutral",
+      "predicted_sentiment": "negative",
+      "confidence": 0.4719,
+      "category": "edge",
+      "emotion_correct": false,
+      "sentiment_correct": false
+    },
+    {
+      "text": "I want to scream but I also want to cry",
+      "expected_emotion": "sadness",
+      "predicted_emotion": "neutral",
+      "expected_sentiment": "negative",
+      "predicted_sentiment": "negative",
+      "confidence": 0.2712,
+      "category": "edge",
+      "emotion_correct": false,
+      "sentiment_correct": true
+    },
+    {
+      "text": "Today was a day",
+      "expected_emotion": "neutral",
+      "predicted_emotion": "joy",
+      "expected_sentiment": "neutral",
+      "predicted_sentiment": "positive",
+      "confidence": 0.5141,
+      "category": "edge",
+      "emotion_correct": false,
+      "sentiment_correct": false
+    },
+    {
+      "text": "Everything is fine",
+      "expected_emotion": "neutral",
+      "predicted_emotion": "sadness",
+      "expected_sentiment": "neutral",
+      "predicted_sentiment": "negative",
+      "confidence": 0.307,
+      "category": "edge",
+      "emotion_correct": false,
+      "sentiment_correct": false
+    },
+    {
+      "text": "Everything is fine \ud83d\ude42",
+      "expected_emotion": "neutral",
+      "predicted_emotion": "sadness",
+      "expected_sentiment": "neutral",
+      "predicted_sentiment": "negative",
+      "confidence": 0.307,
+      "category": "edge",
+      "emotion_correct": false,
+      "sentiment_correct": false
+    },
+    {
+      "text": "I finally achieved my dream",
+      "expected_emotion": "joy",
+      "predicted_emotion": "neutral",
+      "expected_sentiment": "positive",
+      "predicted_sentiment": "negative",
+      "confidence": 0.2712,
+      "category": "edge",
+      "emotion_correct": false,
+      "sentiment_correct": false
+    },
+    {
+      "text": "I can't do this anymore",
+      "expected_emotion": "sadness",
+      "predicted_emotion": "neutral",
+      "expected_sentiment": "negative",
+      "predicted_sentiment": "negative",
+      "confidence": 0.3131,
+      "category": "edge",
+      "emotion_correct": false,
+      "sentiment_correct": true
+    }
+  ],
+  "errors": []
+}

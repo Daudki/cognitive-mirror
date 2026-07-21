@@ -16,40 +16,19 @@ class BaseAdapter:
 
 
 class DummyAdapter(BaseAdapter):
-    """Lightweight generator used when no real LLM backend is configured.
+    """NO-OP adapter — should never produce mind state text.
 
-    This avoids hard templates by composing varied, contextualized sentences
-    using the provided prompt.
+    The Sherlock Lens handles all evidence-based reasoning generation.
+    This adapter exists only as a stub for the distortion detection
+    LLM pipeline. For mind state generation, the ModelManager skips
+    the LLM path entirely and uses Sherlock Lens reasoning.
     """
 
-    VARIATIONS = [
-        "The person appears to be {emotion} with a {sentiment} tone. {detail}",
-        "Reading between the lines, they seem {emotion} and {sentiment}: {detail}",
-        "There is a sense of {emotion} coupled with {sentiment}. {detail}",
-    ]
-
-    DETAILS = [
-        "Their attention is drawn to personal relationships and inner states.",
-        "Subtle cues point to internal conflict and layered feelings.",
-        "Behavioral patterns suggest coping strategies and latent needs.",
-        "They may benefit from reflection and supportive dialogue.",
-    ]
-
     def generate(self, prompt: str, max_tokens: int = 256, **kwargs) -> Dict[str, Any]:
-        # Try to extract short signals from prompt when possible
-        emotion = kwargs.get("emotion", "neutral")
-        sentiment = kwargs.get("sentiment", "neutral")
-        confidence = kwargs.get("confidence", 0.5)
-
-        template = random.choice(self.VARIATIONS)
-        detail = random.choice(self.DETAILS)
-
-        text = template.format(emotion=emotion, sentiment=sentiment, detail=detail)
-
         return {
-            "text": text,
+            "text": "",
             "model": "dummy-adapter",
-            "tokens": len(text.split()),
+            "tokens": 0,
         }
 
 

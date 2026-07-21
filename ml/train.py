@@ -1,215 +1,441 @@
+#!/usr/bin/env python3
+"""
+Cognitive Mirror — Reproducible Training Pipeline (v2.0)
+
+Architecture:
+    TF-IDF + Logistic Regression (multi-class, calibrated)
+
+Dataset:
+    Synthetic + curated examples covering 7 emotion classes
+    with linguistic diversity, negations, mixed emotions, and neutral statements.
+
+Pipeline:
+    1. Generate balanced synthetic dataset
+    2. Load supplementary real datasets (optional)
+    3. Clean and validate labels
+    4. Preprocess text with IDENTICAL pipeline as inference
+    5. TF-IDF vectorization
+    6. Train Logistic Regression with class balancing
+    7. Calibrate probabilities with Platt scaling
+    8. Evaluate on held-out test set
+    9. Serialize all artifacts for production
+
+Usage:
+    python ml/train.py
+"""
+
 import os
-import pandas as pd
-import numpy as np
-import pickle
-import joblib
-import re
 import sys
+import pickle
+import json
+import random
 from pathlib import Path
+from datetime import datetime, timezone
+from typing import List, Tuple, Dict
+
+import numpy as np
+import joblib
+
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import LabelEncoder
-from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.calibration import CalibratedClassifierCV
+from sklearn.metrics import (
+    classification_report,
+    confusion_matrix,
+    accuracy_score,
+    precision_recall_fscore_support,
+)
 
+# Ensure project root is importable
 project_root = Path(__file__).resolve().parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
 from cognitive_mirror.preprocessing import clean_text
-from ml.labels import map_emotion_label, map_sentiment_label
+from ml.labels import (
+    map_emotion_label,
+    map_sentiment_label,
+    emotion_to_sentiment,
+    ALL_CANONICAL_EMOTIONS,
+)
+from ml.dataset_builder import TRAINING_DATA
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 MODEL_DIR = BASE_DIR / "models"
-DATA_PATH = Path(__file__).resolve().parent / "clean_training_data.csv"
-FALLBACK_DATA_PATH = Path(__file__).resolve().parent / "data.csv"
+MODEL_DIR.mkdir(parents=True, exist_ok=True)
 
 
-def load_local_data(path):
-    if not path.exists():
-        path = FALLBACK_DATA_PATH
-    df = pd.read_csv(path)
-    df["text"] = df["text"].astype(str).str.strip().str.strip('"').str.strip("'")
-    df["emotion"] = df["emotion"].astype(str).str.strip().str.strip('"').str.strip("'")
-    df["sentiment"] = df["sentiment"].astype(str).str.strip().str.strip('"').str.strip("'")
-    df["emotion"] = df["emotion"].apply(map_emotion_label)
-    df["sentiment"] = df["sentiment"].apply(map_sentiment_label)
-    df["clean_text"] = df["text"].apply(clean_text)
-    df = df[df["clean_text"].str.strip() != ""]
-    df = df.drop_duplicates(subset=["clean_text"])
-    return df[["clean_text", "emotion", "sentiment"]]
+def build_dataset() -> Tuple[List[str], List[str], List[str]]:
+    """Build the training dataset from synthetic + optional external data.
+
+    Returns:
+        texts, emotion_labels, sentiment_labels
+    """
+    texts, emotions, sentiments = [], [], []
+
+    # 1. Load synthetic training data
+    for text, emotion, sentiment in TRAINING_DATA:
+        texts.append(text)
+        emotions.append(emotion)
+        sentiments.append(sentiment)
+
+    synthetic_count = len(texts)
+    print(f"Synthetic training data: {synthetic_count} samples")
+
+    # 2. Try loading supplementary real datasets (if available)
+    hf_count = 0
+    if os.environ.get("TRAIN_USE_HF", "").lower() in ("1", "true", "yes"):
+        hf_texts, hf_emotions, hf_sentiments = _load_huggingface_data()
+        texts.extend(hf_texts)
+        emotions.extend(hf_emotions)
+        sentiments.extend(hf_sentiments)
+        hf_count = len(hf_texts)
+        print(f"Supplementary HuggingFace data: {hf_count} samples")
+
+    # 3. Preprocess and filter
+    clean_texts, clean_emotions, clean_sentiments = [], [], []
+    seen = set()
+
+    for text, emotion, sentiment in zip(texts, emotions, sentiments):
+        cleaned = clean_text(text)
+        if not cleaned or len(cleaned.split()) < 1:
+            continue
+        if cleaned in seen:
+            continue
+        seen.add(cleaned)
+        clean_texts.append(cleaned)
+        clean_emotions.append(emotion)
+        clean_sentiments.append(sentiment)
+
+    # 4. Report class distribution
+    from collections import Counter
+    emotion_counts = Counter(clean_emotions)
+    print(f"\nAfter dedup: {len(clean_texts)} samples")
+    print("Emotion distribution:")
+    for cls in ALL_CANONICAL_EMOTIONS:
+        print(f"  {cls:12s}: {emotion_counts.get(cls, 0):4d}")
+
+    return clean_texts, clean_emotions, clean_sentiments
 
 
-def load_huggingface_data():
-    frames = []
+def _load_huggingface_data() -> Tuple[List[str], List[str], List[str]]:
+    """Load supplementary datasets from HuggingFace if available."""
+    texts, emotions, sentiments = [], [], []
     try:
         from datasets import load_dataset
 
-        go_emotions = load_dataset("go_emotions", "simplified", split="train")
-        go_df = pd.DataFrame(go_emotions)
-        go_df = go_df.rename(columns={"text": "text"})
-        go_df["emotion"] = go_df["labels"].apply(
-            lambda x: map_emotion_label(go_emotions.features["labels"].feature.int2str(x[0]) if isinstance(x, list) and x else "neutral")
-        )
-        go_df["sentiment"] = go_df["emotion"].apply(
-            lambda e: "positive" if e in {"joy", "surprise"} else ("negative" if e in {"anger", "sadness", "fear", "disgust"} else "neutral")
-        )
-        go_df["clean_text"] = go_df["text"].apply(clean_text)
-        frames.append(go_df[["clean_text", "emotion", "sentiment"]])
-        print(f"Loaded {len(go_df)} samples from go_emotions")
+        # dair-ai/emotion dataset
+        try:
+            ds = load_dataset("dair-ai/emotion", "split", split="train", trust_remote_code=True)
+            label_map = {0: "sadness", 1: "joy", 2: "love", 3: "anger", 4: "fear", 5: "surprise"}
+            for item in ds:
+                t = str(item.get("text", "")).strip()
+                if not t:
+                    continue
+                emotion = label_map.get(item.get("label", -1), "neutral")
+                if emotion == "love":
+                    emotion = "joy"
+                sentiment = emotion_to_sentiment(emotion)
+                texts.append(t)
+                emotions.append(emotion)
+                sentiments.append(sentiment)
+            print(f"  Loaded {len(texts)} from dair-ai/emotion")
+        except Exception as e:
+            print(f"  dair-ai/emotion skipped: {e}")
+    except ImportError:
+        print("  datasets library not available — skipping HF data")
     except Exception as e:
-        print(f"go_emotions unavailable: {e}")
+        print(f"  HF data loading failed: {e}")
 
-    try:
-        emotion_dataset = load_dataset("dair-ai/emotion", "split", split="train")
-        emo_df = pd.DataFrame(emotion_dataset)
-        emo_df = emo_df.rename(columns={"text": "text", "label": "emotion"})
-        label_map = {0: "sadness", 1: "joy", 2: "love", 3: "anger", 4: "fear", 5: "surprise"}
-        emo_df["emotion"] = emo_df["emotion"].apply(lambda x: map_emotion_label(label_map.get(x, "neutral")))
-        emo_df["sentiment"] = emo_df["emotion"].apply(
-            lambda e: "positive" if e in {"joy", "love", "surprise"} else ("negative" if e in {"anger", "sadness", "fear"} else "neutral")
-        )
-        emo_df["clean_text"] = emo_df["text"].apply(clean_text)
-        frames.append(emo_df[["clean_text", "emotion", "sentiment"]])
-        print(f"Loaded {len(emo_df)} samples from dair-ai/emotion")
-    except Exception as e:
-        print(f"dair-ai/emotion unavailable: {e}")
-
-    try:
-        tweet_eval = load_dataset("tweet_eval", "sentiment", split="train")
-        tw_df = pd.DataFrame(tweet_eval)
-        tw_df = tw_df.rename(columns={"text": "text", "label": "sentiment_raw"})
-        sentiment_map = {0: "negative", 1: "neutral", 2: "positive"}
-        tw_df["sentiment"] = tw_df["sentiment_raw"].apply(lambda x: sentiment_map.get(x, "neutral"))
-        tw_df["emotion"] = tw_df["sentiment"].apply(
-            lambda s: "joy" if s == "positive" else ("sadness" if s == "negative" else "neutral")
-        )
-        tw_df["clean_text"] = tw_df["text"].apply(clean_text)
-        frames.append(tw_df[["clean_text", "emotion", "sentiment"]])
-        print(f"Loaded {len(tw_df)} samples from tweet_eval sentiment")
-    except Exception as e:
-        print(f"tweet_eval unavailable: {e}")
-
-    if frames:
-        return pd.concat(frames, ignore_index=True)
-    return None
+    return texts, emotions, sentiments
 
 
-def main():
-    MODEL_DIR.mkdir(parents=True, exist_ok=True)
+# ============================================================================
+# MODEL TRAINING
+# ============================================================================
 
-    local_df = load_local_data(DATA_PATH)
-    local_weight = max(1, int(os.environ.get("LOCAL_SAMPLE_WEIGHT", "15")))
-    if local_weight > 1:
-        local_df = pd.concat([local_df] * local_weight, ignore_index=True)
-    print(f"Local data: {len(local_df)} samples (weight={local_weight})")
+def train_model(
+    texts: List[str],
+    emotions: List[str],
+    sentiments: List[str],
+    model_dir: Path = MODEL_DIR,
+):
+    """Train emotion and sentiment classifiers.
 
-    skip_hf = os.environ.get("TRAIN_SKIP_HF", "1").lower() in ("1", "true", "yes")
-    hf_df = None if skip_hf else load_huggingface_data()
+    Architecture:
+        - TF-IDF vectorizer (n-grams 1-2, max 8000 features)
+        - Logistic Regression with class_weight='balanced'
+        - CalibratedClassifierCV for reliable probability estimates
+    """
+    print("\n" + "=" * 60)
+    print("TRAINING PIPELINE")
+    print("=" * 60)
 
-    if hf_df is not None and len(hf_df) > 0:
-        df = pd.concat([local_df, hf_df], ignore_index=True)
-        print(f"Combined data: {len(df)} samples (local + HuggingFace)")
-    else:
-        df = local_df
-        print("Using local cleaned data only")
+    # --- Train/validation/test split (70/15/15) ---
+    # Use stratified split to preserve class distribution
+    X_temp, X_test, y_e_temp, y_e_test, y_s_temp, y_s_test = train_test_split(
+        texts, emotions, sentiments, test_size=0.15, random_state=42, stratify=emotions
+    )
+    X_train, X_val, y_e_train, y_e_val, y_s_train, y_s_val = train_test_split(
+        X_temp, y_e_temp, y_s_temp, test_size=0.1765, random_state=42, stratify=y_e_temp
+    )  # 0.1765 * 0.85 ≈ 0.15
 
-    df = df.drop_duplicates(subset=["clean_text"])
-    df = df[df["clean_text"].str.strip() != ""]
-    print(f"After dedup and cleaning: {len(df)} samples")
+    print(f"\nTrain:   {len(X_train)} samples")
+    print(f"Val:     {len(X_val)} samples")
+    print(f"Test:    {len(X_test)} samples")
 
-    local_count = len(local_df)
-    max_rows = int(os.environ.get("TRAIN_MAX_ROWS", "20000"))
-    if len(df) > max_rows:
-        local_part = df.iloc[:local_count]
-        extra = df.iloc[local_count:]
-        need = max(0, max_rows - len(local_part))
-        if need > 0 and len(extra) > 0:
-            extra = extra.sample(n=min(need, len(extra)), random_state=42)
-            df = pd.concat([local_part, extra], ignore_index=True)
-        else:
-            df = local_part
-        print(f"Downsampled to {len(df)} samples ({local_count} local + {len(df) - local_count} external)")
-
-    X = df["clean_text"].tolist()
-    y_emotion = df["emotion"].tolist()
-    y_sentiment = df["sentiment"].tolist()
-
+    # --- TF-IDF Vectorization ---
+    print("\nFitting TF-IDF vectorizer...")
     vectorizer = TfidfVectorizer(
-        max_features=5000,
+        max_features=8000,
         ngram_range=(1, 2),
-        min_df=2,
-        max_df=0.90,
+        min_df=1,
+        max_df=1.0,
         sublinear_tf=True,
+        strip_accents="unicode",
+    )
+    X_train_vec = vectorizer.fit_transform(X_train)
+    X_val_vec = vectorizer.transform(X_val)
+    X_test_vec = vectorizer.transform(X_test)
+
+    print(f"Vocabulary size: {len(vectorizer.vocabulary_)}")
+
+    # --- Label Encoding ---
+    emotion_encoder = LabelEncoder()
+    sentiment_encoder = LabelEncoder()
+
+    y_e_train_enc = emotion_encoder.fit_transform(y_e_train)
+    y_e_val_enc = emotion_encoder.transform(y_e_val)
+    y_e_test_enc = emotion_encoder.transform(y_e_test)
+
+    y_s_train_enc = sentiment_encoder.fit_transform(y_s_train)
+    y_s_val_enc = sentiment_encoder.transform(y_s_val)
+    y_s_test_enc = sentiment_encoder.transform(y_s_test)
+
+    print(f"Emotion classes: {emotion_encoder.classes_.tolist()}")
+    print(f"Sentiment classes: {sentiment_encoder.classes_.tolist()}")
+
+    # --- Train Emotion Classifier ---
+    print("\nTraining emotion classifier...")
+    emotion_model = LogisticRegression(
+        max_iter=5000,
+        C=0.5,
+        solver="saga",
+        class_weight="balanced",
+        random_state=42,
     )
 
-    label_encoder_emotion = LabelEncoder()
-    label_encoder_sentiment = LabelEncoder()
+    # Calibrate for meaningful confidence scores
+    emotion_calibrated = CalibratedClassifierCV(
+        estimator=emotion_model,
+        method="sigmoid",  # Platt scaling
+        cv=3,
+    )
+    emotion_calibrated.fit(X_train_vec, y_e_train_enc)
 
-    X_vec = vectorizer.fit_transform(X)
-    y_emotion_enc = label_encoder_emotion.fit_transform(y_emotion)
-    y_sentiment_enc = label_encoder_sentiment.fit_transform(y_sentiment)
+    # --- Train Sentiment Classifier ---
+    print("Training sentiment classifier...")
+    sentiment_model = LogisticRegression(
+        max_iter=5000,
+        C=0.5,
+        solver="saga",
+        class_weight="balanced",
+        random_state=42,
+    )
+    sentiment_calibrated = CalibratedClassifierCV(
+        estimator=sentiment_model,
+        method="sigmoid",
+        cv=3,
+    )
+    sentiment_calibrated.fit(X_train_vec, y_s_train_enc)
 
-    emotion_model = LogisticRegression(max_iter=10000, C=0.5, solver="saga", class_weight="balanced")
-    emotion_model.fit(X_vec, y_emotion_enc)
+    # --- Evaluation ---
+    print("\n" + "-" * 40)
+    print("EVALUATION (Validation Set)")
+    print("-" * 40)
 
-    sentiment_model = LogisticRegression(max_iter=10000, C=0.5, solver="saga", class_weight="balanced")
-    sentiment_model.fit(X_vec, y_sentiment_enc)
+    # Emotion metrics
+    y_e_val_pred = emotion_calibrated.predict(X_val_vec)
+    e_acc = accuracy_score(y_e_val_enc, y_e_val_pred)
+    e_p, e_r, e_f1, _ = precision_recall_fscore_support(
+        y_e_val_enc, y_e_val_pred, average="macro", zero_division=0
+    )
+    print(f"Emotion — Accuracy: {e_acc:.2%}  Precision: {e_p:.2%}  Recall: {e_r:.2%}  F1: {e_f1:.2%}")
 
-    emotion_scores = cross_val_score(emotion_model, X_vec, y_emotion_enc, cv=3)
-    sentiment_scores = cross_val_score(sentiment_model, X_vec, y_sentiment_enc, cv=3)
+    # Sentiment metrics
+    y_s_val_pred = sentiment_calibrated.predict(X_val_vec)
+    s_acc = accuracy_score(y_s_val_enc, y_s_val_pred)
+    s_p, s_r, s_f1, _ = precision_recall_fscore_support(
+        y_s_val_enc, y_s_val_pred, average="macro", zero_division=0
+    )
+    print(f"Sentiment — Accuracy: {s_acc:.2%}  Precision: {s_p:.2%}  Recall: {s_r:.2%}  F1: {s_f1:.2%}")
 
-    print(f"\nEmotion CV accuracy: {emotion_scores.mean():.2%} (+/- {emotion_scores.std():.2%})")
-    print(f"Sentiment CV accuracy: {sentiment_scores.mean():.2%} (+/- {sentiment_scores.std():.2%})")
+    # Per-class emotion report
+    print("\nPer-class emotion metrics (validation):")
+    val_report = classification_report(
+        y_e_val_enc, y_e_val_pred,
+        target_names=emotion_encoder.classes_,
+        zero_division=0,
+    )
+    print(val_report)
 
+    # Cross-validation
+    print("\nCross-validation (3-fold)...")
+    X_all_vec = vectorizer.transform(texts)
+    y_e_all_enc = emotion_encoder.transform(emotions)
+    cv_scores = cross_val_score(
+        emotion_calibrated, X_all_vec, y_e_all_enc, cv=3, scoring="accuracy"
+    )
+    print(f"CV accuracy: {cv_scores.mean():.2%} (+/- {cv_scores.std():.2%})")
+
+    # --- Test set evaluation ---
+    print("\n" + "-" * 40)
+    print("FINAL EVALUATION (Test Set)")
+    print("-" * 40)
+    y_e_test_pred = emotion_calibrated.predict(X_test_vec)
+    test_acc = accuracy_score(y_e_test_enc, y_e_test_pred)
+    test_p, test_r, test_f1, _ = precision_recall_fscore_support(
+        y_e_test_enc, y_e_test_pred, average="macro", zero_division=0
+    )
+    print(f"Emotion — Accuracy: {test_acc:.2%}  Precision: {test_p:.2%}  Recall: {test_r:.2%}  F1: {test_f1:.2%}")
+
+    print("\nTest confusion matrix:")
+    cm = confusion_matrix(y_e_test_enc, y_e_test_pred)
+    labels = emotion_encoder.classes_.tolist()
+    header = " " * 12 + "".join(f"{l:>8s}" for l in labels)
+    print(header)
+    for i, label in enumerate(labels):
+        row = f"{label:>12s}" + "".join(f"{cm[i][j]:8d}" for j in range(len(labels)))
+        print(row)
+
+    # --- Serialize ---
+    print("\nSaving model artifacts...")
+    timestamp = datetime.now(timezone.utc).isoformat()
+
+    # Single checkpoint (recommended)
     checkpoint = {
-        "version": "3.0.0",
-        "emotion_model": emotion_model,
-        "sentiment_model": sentiment_model,
+        "version": "2.0.0",
+        "trained_at": timestamp,
+        "emotion_model": emotion_calibrated,
+        "sentiment_model": sentiment_calibrated,
         "vectorizer": vectorizer,
-        "label_encoder": label_encoder_emotion,
-        "label_encoder_sentiment": label_encoder_sentiment,
-        "emotion_classes": label_encoder_emotion.classes_.tolist(),
-        "sentiment_classes": label_encoder_sentiment.classes_.tolist(),
+        "label_encoder": emotion_encoder,
+        "label_encoder_sentiment": sentiment_encoder,
+        "emotion_classes": emotion_encoder.classes_.tolist(),
+        "sentiment_classes": sentiment_encoder.classes_.tolist(),
+        "metrics": {
+            "val_emotion_accuracy": e_acc,
+            "val_emotion_f1_macro": e_f1,
+            "test_emotion_accuracy": test_acc,
+            "test_emotion_f1_macro": test_f1,
+            "n_samples": len(texts),
+        },
     }
 
-    joblib.dump(checkpoint, MODEL_DIR / "model.pkl")
+    joblib.dump(checkpoint, model_dir / "model.pkl")
+    print(f"  Saved: {model_dir / 'model.pkl'}")
 
-    with open(MODEL_DIR / "emotion.pkl", "wb") as f:
-        pickle.dump(emotion_model, f)
-    with open(MODEL_DIR / "sentiment.pkl", "wb") as f:
-        pickle.dump(sentiment_model, f)
-    with open(MODEL_DIR / "vectorizer.pkl", "wb") as f:
+    # Legacy pickle files for backward compatibility
+    with open(model_dir / "emotion.pkl", "wb") as f:
+        pickle.dump(emotion_calibrated, f)
+    with open(model_dir / "sentiment.pkl", "wb") as f:
+        pickle.dump(sentiment_calibrated, f)
+    with open(model_dir / "vectorizer.pkl", "wb") as f:
         pickle.dump(vectorizer, f)
-    with open(MODEL_DIR / "label_encoder.pkl", "wb") as f:
-        pickle.dump(label_encoder_emotion, f)
-    with open(MODEL_DIR / "label_encoder_sentiment.pkl", "wb") as f:
-        pickle.dump(label_encoder_sentiment, f)
+    with open(model_dir / "label_encoder.pkl", "wb") as f:
+        pickle.dump(emotion_encoder, f)
+    with open(model_dir / "label_encoder_sentiment.pkl", "wb") as f:
+        pickle.dump(sentiment_encoder, f)
 
-    print(f"\nModels saved to {MODEL_DIR}")
-    print(f"Emotion classes: {label_encoder_emotion.classes_.tolist()}")
-    print(f"Sentiment classes: {label_encoder_sentiment.classes_.tolist()}")
+    # Training metadata (human-readable)
+    metadata = {
+        "version": "2.0.0",
+        "trained_at": timestamp,
+        "emotion_classes": emotion_encoder.classes_.tolist(),
+        "sentiment_classes": sentiment_encoder.classes_.tolist(),
+        "vocabulary_size": len(vectorizer.vocabulary_),
+        "n_train": len(X_train),
+        "n_val": len(X_val),
+        "n_test": len(X_test),
+        "total_samples": len(texts),
+        "class_distribution": {str(k): int(v) for k, v in zip(
+            *np.unique(emotions, return_counts=True)
+        )},
+        "metrics": {
+            "val_emotion_accuracy": float(e_acc),
+            "val_emotion_f1_macro": float(e_f1),
+            "test_emotion_accuracy": float(test_acc),
+            "test_emotion_f1_macro": float(test_f1),
+            "cv_accuracy_mean": float(cv_scores.mean()),
+            "cv_accuracy_std": float(cv_scores.std()),
+        },
+        "config": {
+            "tfidf_max_features": 8000,
+            "tfidf_ngram_range": [1, 2],
+            "model_type": "LogisticRegression",
+            "calibration": "Platt scaling (sigmoid)",
+            "class_weight": "balanced",
+        },
+    }
+    with open(model_dir / "training_metadata.json", "w") as f:
+        json.dump(metadata, f, indent=2)
 
-    test_texts = [
-        "i am glad it finally worked",
-        "i am not happy",
-        "i feel amazing today",
-        "everything is terrible",
-        "i am so angry right now",
-        "i am happy",
-        "today was a good day",
-        "i hate this so much",
+    print(f"  Saved: {model_dir / 'training_metadata.json'}")
+    print("\nTraining complete.")
+
+    # --- Quick smoke test ---
+    print("\n" + "-" * 40)
+    print("SMOKE TEST")
+    print("-" * 40)
+    test_inputs = [
+        "I am very happy today",
+        "I am not happy today",
+        "I feel sad and lonely",
+        "I am not sad at all",
+        "I am furious about this",
+        "I am terrified of what might happen",
+        "What time is the meeting",
+        "Everything is fine",
+        "I am fine, everything is fine",
+        "Oh great another problem",
+        "I hate this so much",
+        "Wow I did not expect that",
+        "This is absolutely disgusting",
+        "I am happy but feel empty inside",
+        "Help me please",
     ]
 
-    print("\nTest predictions:")
-    for t in test_texts:
-        clean = clean_text(t)
-        features = vectorizer.transform([clean])
-        ep = emotion_model.predict(features)[0]
-        sp = sentiment_model.predict(features)[0]
-        el = label_encoder_emotion.inverse_transform([ep])[0]
-        sl = label_encoder_sentiment.inverse_transform([sp])[0]
-        proba = emotion_model.predict_proba(features)[0].max()
-        print(f"  '{t}' -> emotion={el}, sentiment={sl}, confidence={proba:.2%}")
+    for t in test_inputs:
+        cleaned = clean_text(t)
+        features = vectorizer.transform([cleaned])
+
+        e_pred = emotion_calibrated.predict(features)[0]
+        e_proba = emotion_calibrated.predict_proba(features)[0]
+        e_label = emotion_encoder.inverse_transform([e_pred])[0]
+        e_conf = float(e_proba.max())
+
+        s_pred = sentiment_calibrated.predict(features)[0]
+        s_label = sentiment_encoder.inverse_transform([s_pred])[0]
+
+        print(f"  '{t}' -> emotion={e_label}, sentiment={s_label}, confidence={e_conf:.2f}")
+
+    return checkpoint
+
+
+# ============================================================================
+# MAIN
+# ============================================================================
+
+def main():
+    """Run the full training pipeline."""
+    print("=" * 60)
+    print("COGNITIVE MIRROR — TRAINING PIPELINE v2.0")
+    print("=" * 60)
+
+    texts, emotions, sentiments = build_dataset()
+    train_model(texts, emotions, sentiments)
 
 
 if __name__ == "__main__":

@@ -244,6 +244,23 @@ class ModelManager:
         sentiment_result: Dict[str, Any],
         raw_text: Optional[str] = None,
     ) -> str:
+        """Generate a human-readable mind state description.
+
+        Uses the Sherlock Lens for evidence-based reasoning when available,
+        falling back to template-based generation.
+        """
+        try:
+            from cognitive_mirror.services.sherlock import analyze_single_entry
+
+            if raw_text:
+                analysis = analyze_single_entry(raw_text, emotion_result, sentiment_result)
+                reasoning = analysis.get("reasoning", "")
+                if reasoning:
+                    return reasoning
+        except Exception:
+            pass
+
+        # Fallback to template-based mind state
         emotion = emotion_result.get("emotion", "neutral")
         sentiment = sentiment_result.get("sentiment", "neutral")
         confidence = emotion_result.get("confidence", 0.5)

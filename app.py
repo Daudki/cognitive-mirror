@@ -37,7 +37,8 @@ def _find_available_port(start_port: int = 5000) -> int:
 
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    if port == 5000:
-        port = _find_available_port(port)
-    app.run(debug=app.config.get("DEBUG", True), port=port)
+    port = int(os.environ.get("PORT", 0))
+    if port == 0:
+        port = _find_available_port(5000)
+    print(f"\n>>> Cognitive Mirror running at http://127.0.0.1:{port} <<<\n")
+    app.run(debug=app.config.get("DEBUG", True), port=port, host="127.0.0.1")
