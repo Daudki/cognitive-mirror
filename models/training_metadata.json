@@ -1,0 +1,50 @@
+{
+  "version": "2.0.0",
+  "trained_at": "2026-09-23T07:54:28.794573+00:00",
+  "emotion_classes": [
+    "anger",
+    "disgust",
+    "fear",
+    "joy",
+    "neutral",
+    "sadness",
+    "surprise"
+  ],
+  "sentiment_classes": [
+    "negative",
+    "neutral",
+    "positive"
+  ],
+  "vocabulary_size": 1850,
+  "n_train": 434,
+  "n_val": 94,
+  "n_test": 94,
+  "total_samples": 622,
+  "class_distribution": {
+    "anger": 89,
+    "disgust": 54,
+    "fear": 82,
+    "joy": 110,
+    "neutral": 95,
+    "sadness": 140,
+    "surprise": 52
+  },
+  "metrics": {
+    "val_emotion_accuracy": 0.5106382978723404,
+    "val_emotion_f1_macro": 0.5030888418876628,
+    "test_emotion_accuracy": 0.43617021276595747,
+    "test_emotion_f1_macro": 0.42351775236033584,
+    "cv_accuracy_mean": 0.37783351913786695,
+    "cv_accuracy_std": 0.03466395924713069
+  },
+  "config": {
+    "tfidf_max_features": 8000,
+    "tfidf_ngram_range": [
+      1,
+      2
+    ],
+    "model_type": "LogisticRegression",
+    "calibration": "Platt scaling (sigmoid)",
+    "class_weight": "balanced"
+  }
+}

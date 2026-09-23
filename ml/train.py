@@ -84,15 +84,50 @@ def build_dataset() -> Tuple[List[str], List[str], List[str]]:
     synthetic_count = len(texts)
     print(f"Synthetic training data: {synthetic_count} samples")
 
-    # 2. Try loading supplementary real datasets (if available)
+    # 2. Try loading supplementary real datasets (if available), capped per
+    #    class relative to the synthetic set. Without this, an external
+    #    source like dair-ai/emotion — which has NO "disgust" or "neutral"
+    #    labels at all, and is itself skewed toward joy/sadness — silently
+    #    drowns out the hand-balanced synthetic data (this happened in the
+    #    2026-07-21 model.pkl: 16,273 HF samples vs. 565 synthetic ones,
+    #    leaving disgust/neutral at <1% of training data combined).
     hf_count = 0
     if os.environ.get("TRAIN_USE_HF", "").lower() in ("1", "true", "yes"):
         hf_texts, hf_emotions, hf_sentiments = _load_huggingface_data()
-        texts.extend(hf_texts)
-        emotions.extend(hf_emotions)
-        sentiments.extend(hf_sentiments)
-        hf_count = len(hf_texts)
-        print(f"Supplementary HuggingFace data: {hf_count} samples")
+
+        from collections import Counter
+        synthetic_counts = Counter(emotions)
+        # Allow HF to contribute up to HF_CAP_MULTIPLIER x each class's
+        # synthetic count (or a floor, for classes with very few synthetic
+        # examples) — supplementing rather than overwhelming.
+        hf_cap_multiplier = float(os.environ.get("TRAIN_HF_CAP_MULTIPLIER", "3"))
+        hf_min_cap = int(os.environ.get("TRAIN_HF_MIN_CAP", "150"))
+
+        per_class_added: Dict[str, int] = {}
+        capped_texts, capped_emotions, capped_sentiments = [], [], []
+        for t, e, s in zip(hf_texts, hf_emotions, hf_sentiments):
+            cap = max(hf_min_cap, int(synthetic_counts.get(e, 0) * hf_cap_multiplier))
+            if per_class_added.get(e, 0) >= cap:
+                continue
+            per_class_added[e] = per_class_added.get(e, 0) + 1
+            capped_texts.append(t)
+            capped_emotions.append(e)
+            capped_sentiments.append(s)
+
+        texts.extend(capped_texts)
+        emotions.extend(capped_emotions)
+        sentiments.extend(capped_sentiments)
+        hf_count = len(capped_texts)
+        print(
+            f"Supplementary HuggingFace data: {hf_count} samples "
+            f"(capped from {len(hf_texts)} raw — per-class caps: {per_class_added})"
+        )
+        missing_from_hf = set(ALL_CANONICAL_EMOTIONS) - set(hf_emotions)
+        if missing_from_hf:
+            print(
+                f"  NOTE: source dataset has no examples for {sorted(missing_from_hf)} — "
+                f"those classes rely entirely on synthetic data."
+            )
 
     # 3. Preprocess and filter
     clean_texts, clean_emotions, clean_sentiments = [], [], []

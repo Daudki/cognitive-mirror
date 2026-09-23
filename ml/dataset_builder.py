@@ -620,9 +620,94 @@ NEGATIONS = [
     ("Nothing good ever happens to me", "sadness", "negative"),
     ("I do not trust anyone anymore", "fear", "negative"),
     ("This is not how things were supposed to go", "sadness", "negative"),
+    # --- Expanded: more "not X" variants per class, so the (1,2)-gram
+    # vectorizer sees the negation pattern across many different X's
+    # instead of memorizing a handful of fixed phrases ---
+    ("I am not thrilled about this at all", "sadness", "negative"),
+    ("I am not pleased with how this turned out", "anger", "negative"),
+    ("I am not content with any of this", "sadness", "negative"),
+    ("I do not feel joyful right now", "sadness", "negative"),
+    ("I am not in a good mood today", "sadness", "negative"),
+    ("Not exactly a great start to the week", "sadness", "negative"),
+    ("I am not scared of this anymore", "joy", "positive"),
+    ("I am no longer worried about the outcome", "joy", "positive"),
+    ("I am not nervous about the interview now", "joy", "positive"),
+    ("I do not feel anxious about it at all", "joy", "positive"),
+    ("I am not stressed about the deadline anymore", "joy", "positive"),
+    ("I am not furious, just tired of repeating myself", "sadness", "negative"),
+    ("I am not mad, just exhausted by this", "sadness", "negative"),
+    ("I do not feel disgusted by that, honestly", "neutral", "neutral"),
+    ("I am not surprised by any of this anymore", "neutral", "neutral"),
+    ("That did not shock me at all", "neutral", "neutral"),
+    ("I would not call this a good day", "sadness", "negative"),
+    ("I cannot say things are going well", "sadness", "negative"),
+    ("I do not think I am handling this well", "fear", "negative"),
+    ("I am not proud of how I reacted", "sadness", "negative"),
+    ("I did not expect to feel this way", "surprise", "negative"),
+    ("I never thought this would happen to me", "surprise", "negative"),
+    ("I have not felt this calm in a while", "joy", "positive"),
+    ("I am not upset about the change anymore", "joy", "positive"),
+    ("I do not regret the decision at all", "joy", "positive"),
+    ("Nothing about today felt normal", "surprise", "negative"),
+    ("I did not see that coming at all", "surprise", "negative"),
+    ("This is not something I am used to", "surprise", "negative"),
+    ("I am not disgusted, just a bit uncomfortable", "neutral", "neutral"),
+    ("I do not find that gross, just unusual", "neutral", "neutral"),
 ]
 
 TRAINING_DATA.extend(NEGATIONS)
+
+# ===========================================================================
+# DISGUST — additional examples, distinct in register from anger
+# (bare "hate"/"furious" language overlaps with anger; disgust needs its
+#  own visceral/revulsion vocabulary to stop the model conflating the two)
+# ===========================================================================
+DISGUST_EXTRA = [
+    ("That smell is absolutely revolting", "disgust", "negative"),
+    ("The state of that kitchen made me want to gag", "disgust", "negative"),
+    ("I felt sick to my stomach looking at it", "disgust", "negative"),
+    ("That is the most repulsive thing I have seen all week", "disgust", "negative"),
+    ("Ew, I am not touching that", "disgust", "negative"),
+    ("The whole situation left a nasty taste in my mouth", "disgust", "negative"),
+    ("I could not even look at it without feeling queasy", "disgust", "negative"),
+    ("That behavior is honestly vile", "disgust", "negative"),
+    ("It was so filthy in there I nearly threw up", "disgust", "negative"),
+    ("Something about the way he did that felt deeply wrong and gross", "disgust", "negative"),
+    ("I am grossed out just thinking about it", "disgust", "negative"),
+    ("The whole thing was nauseating to watch", "disgust", "negative"),
+    ("That comment was in such poor taste it turned my stomach", "disgust", "negative"),
+    ("I recoiled the moment I saw it", "disgust", "negative"),
+    ("There is something viscerally off-putting about the whole thing", "disgust", "negative"),
+]
+
+TRAINING_DATA.extend(DISGUST_EXTRA)
+
+# ===========================================================================
+# NEUTRAL — additional plain, everyday journal-style statements
+# (the register a real self-reflection app actually sees most often —
+#  mundane, low-affect daily-life sentences with no strong emotion word)
+# ===========================================================================
+NEUTRAL_EXTRA = [
+    ("Went to the store and picked up a few things.", "neutral", "neutral"),
+    ("Had a meeting about the project timeline this morning.", "neutral", "neutral"),
+    ("Spent some time reading by the window this afternoon.", "neutral", "neutral"),
+    ("Made dinner and cleaned up the kitchen afterward.", "neutral", "neutral"),
+    ("Worked on a few tasks and answered some emails.", "neutral", "neutral"),
+    ("Took a walk around the block after lunch.", "neutral", "neutral"),
+    ("Called to check in and catch up for a bit.", "neutral", "neutral"),
+    ("Ran some errands and got groceries for the week.", "neutral", "neutral"),
+    ("Finished a task that took longer than expected.", "neutral", "neutral"),
+    ("Watched a show and went to bed a bit late.", "neutral", "neutral"),
+    ("Today was fairly quiet, nothing much stood out.", "neutral", "neutral"),
+    ("Just another regular Tuesday, same routine as usual.", "neutral", "neutral"),
+    ("Organized my desk and planned out next week.", "neutral", "neutral"),
+    ("Sat outside for a while since the weather was mild.", "neutral", "neutral"),
+    ("Reviewed some notes and prepped for tomorrow.", "neutral", "neutral"),
+]
+
+TRAINING_DATA.extend(NEUTRAL_EXTRA)
+
+
 
 
 # ===========================================================================
