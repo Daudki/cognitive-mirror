@@ -192,6 +192,25 @@ class ModelManager:
             {"emotion": classes[i], "probability": round(float(proba[i]), 4)}
             for i in top_indices
         ]
+
+        # Low-confidence predictions are exactly where a ~625-example
+        # bag-of-words model is guessing on vocabulary it hasn't seen
+        # (idioms, euphemisms). A high-precision phrase match is a stronger
+        # signal than a weak model probability in that regime — but never
+        # overrides a prediction the model is already confident about.
+        LOW_CONFIDENCE_THRESHOLD = 0.40
+        if confidence < LOW_CONFIDENCE_THRESHOLD:
+            from cognitive_mirror.services.emotion_lexicon import match_idiom
+            override = match_idiom(text)
+            if override:
+                return {
+                    "emotion": override["emotion"],
+                    "confidence": override["confidence"],
+                    "top_emotions": top_emotions,
+                    "source": "lexicon_override",
+                    "matched_phrase": override["matched_phrase"],
+                }
+
         return {
             "emotion": emotion,
             "confidence": round(confidence, 4),

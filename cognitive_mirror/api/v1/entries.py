@@ -94,3 +94,38 @@ def delete_entry(entry_id: int):
     db.session.delete(entry)
     db.session.commit()
     return jsonify({"ok": True}), 200
+
+
+@bp.route("/entries/recompute", methods=["POST"])
+@login_required
+def recompute_entries():
+    """Re-run the Mirror (emotion/sentiment/distortions) on all of the
+    current user's existing entries against the currently loaded model.
+
+    Entry.emotion/.sentiment are written once at submit time — they don't
+    update automatically when the model is retrained. Without this, Sherlock
+    Lens keeps reporting on stale labels from whatever model was active when
+    each entry was originally submitted, even after a model fix ships.
+    """
+    entries = Entry.query.filter_by(user_id=current_user.id).all()
+    predictor = PredictorService(cache_service=CacheService())
+    detector = DistortionDetector()
+
+    updated = 0
+    for entry in entries:
+        try:
+            prediction = predictor.predict(entry.text)
+        except PredictionError:
+            continue
+        entry.emotion = prediction.emotion.get("emotion")
+        entry.sentiment = prediction.sentiment.get("sentiment")
+        entry.confidence = prediction.emotion.get("confidence")
+        entry.mind_state = prediction.mind_state
+        try:
+            entry.distortions = detector.analyze(entry.text)
+        except Exception:
+            pass
+        updated += 1
+
+    db.session.commit()
+    return jsonify({"ok": True, "updated": updated, "total": len(entries)}), 200

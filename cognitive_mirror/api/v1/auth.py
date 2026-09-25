@@ -31,8 +31,13 @@ def register():
     db.session.add(user)
     db.session.commit()
 
-    login_user(user)
-    return jsonify({"user": user.to_dict()}), 201
+    # Deliberately NOT calling login_user() here. Auto-logging in on
+    # registration means anyone can create a session with an email they
+    # don't actually own — no verification ever happens. Requiring an
+    # explicit /auth/login call after registering is a real (if minimal)
+    # authentication step: it proves whoever's here now can produce the
+    # password just set, not just that a registration form was submitted.
+    return jsonify({"user": user.to_dict(), "message": "Account created. Please log in."}), 201
 
 
 @bp.route("/auth/login", methods=["POST"])

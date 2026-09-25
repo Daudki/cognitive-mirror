@@ -817,6 +817,10 @@ body {
     margin-bottom: var(--space-md);
 }
 
+.form-error.form-success {
+    color: var(--success, #22c55e);
+}
+
 /* =====================================================================
    Buttons
    ===================================================================== */
@@ -1546,6 +1550,13 @@ body {
     color: var(--text-secondary);
     line-height: 1.65;
     font-size: var(--text-sm);
+}
+
+.sherlock-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
 }
 
 .badge {

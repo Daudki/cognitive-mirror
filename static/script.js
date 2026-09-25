@@ -191,6 +191,7 @@ const refreshEntriesBtn = document.getElementById("refresh-entries");
 const refreshEntriesHistoryBtn = document.getElementById("refresh-entries-history");
 
 const generateInsightsBtn = document.getElementById("generate-insights");
+const recomputeEntriesBtn = document.getElementById("recompute-entries");
 const insightsList = document.getElementById("insights-list");
 const sherlockHint = document.getElementById("sherlock-hint");
 
@@ -410,6 +411,7 @@ authTabs.forEach((tab) => {
     tab.addEventListener("click", () => {
         authTabs.forEach((t) => t.classList.remove("active"));
         tab.classList.add("active");
+        loginError.classList.remove("form-success");
         if (tab.dataset.tab === "login") {
             show(loginForm);
             hide(registerForm);
@@ -449,6 +451,7 @@ function enterApp(user) {
 loginForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     loginError.textContent = "";
+    loginError.classList.remove("form-success");
     const email = document.getElementById("login-email").value.trim();
     const password = document.getElementById("login-password").value;
 
@@ -501,7 +504,21 @@ registerForm.addEventListener("submit", async (e) => {
         registerError.textContent = body?.error || "Unable to create account.";
         return;
     }
-    enterApp(body.user);
+
+    // Registration no longer starts a session server-side — require the
+    // person to actually log in with the password they just set, rather
+    // than walking straight into the app.
+    const registeredEmail = email;
+    registerForm.reset();
+    registerError.textContent = "";
+    authTabs.forEach((t) => t.classList.remove("active"));
+    document.querySelector('.auth-tab[data-tab="login"]').classList.add("active");
+    hide(registerForm);
+    show(loginForm);
+    document.getElementById("login-email").value = registeredEmail;
+    loginError.textContent = "Account created — log in to continue.";
+    loginError.classList.add("form-success");
+    document.getElementById("login-password").focus();
 });
 
 logoutSidebarBtn.addEventListener("click", async () => {
@@ -891,6 +908,27 @@ if (generateInsightsBtn) {
         }
 
         renderInsights(body.insights);
+    });
+}
+
+if (recomputeEntriesBtn) {
+    recomputeEntriesBtn.addEventListener("click", async () => {
+        setButtonLoading(recomputeEntriesBtn, true);
+        if (sherlockHint) sherlockHint.textContent = "Re-scoring your past entries against the current model…";
+
+        const { ok, body } = await apiCall("/entries/recompute", { method: "POST" });
+
+        setButtonLoading(recomputeEntriesBtn, false);
+
+        if (!ok) {
+            if (sherlockHint) sherlockHint.textContent = body?.error || "Unable to recompute entries right now.";
+            return;
+        }
+
+        if (sherlockHint) {
+            sherlockHint.textContent = `Updated ${body.updated} of ${body.total} entries. Run analysis again to see fresh patterns.`;
+        }
+        if (typeof loadEntries === "function") loadEntries();
     });
 }
 

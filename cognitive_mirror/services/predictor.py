@@ -209,6 +209,12 @@ class PredictorService:
         return hashlib.sha256(content).hexdigest()[:12]
     
     def _cache_key(self, text: str) -> str:
-        """Generate a deterministic cache key from text."""
+        """Generate a deterministic cache key from text AND the currently
+        loaded model version — without this, retraining doesn't invalidate
+        cached predictions, so old broken results keep serving for any text
+        someone already tested until the TTL happens to expire.
+        """
         normalized = text.lower().strip()
-        return f"predict:{hashlib.sha256(normalized.encode('utf-8')).hexdigest()}"
+        model_version = ModelManager.get_metadata().get("version", "unknown")
+        raw = f"{model_version}:{normalized}"
+        return f"predict:{hashlib.sha256(raw.encode('utf-8')).hexdigest()}"

@@ -128,9 +128,11 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# Machine Learning models and data
-models/
-*.pkl
+# Machine Learning model artifacts (root-level only — this must NOT match
+# cognitive_mirror/models/, which is real source code, not artifacts.
+# An unanchored "models/" here previously matched both, silently requiring
+# `git add -f` for every legitimate change to the models package.)
+/models/*.pkl
 *.pickle
 
 # IDE

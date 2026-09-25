@@ -251,13 +251,18 @@
                             </div>
                             <span class="badge">Across all entries</span>
                         </div>
-                        <button id="generate-insights" class="btn btn-secondary">
-                            <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                                <path d="M3 17L8 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                                <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.5"/>
-                            </svg>
-                            Run analysis
-                        </button>
+                        <div class="sherlock-actions">
+                            <button id="generate-insights" class="btn btn-secondary">
+                                <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                    <path d="M3 17L8 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                    <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.5"/>
+                                </svg>
+                                Run analysis
+                            </button>
+                            <button id="recompute-entries" class="btn btn-ghost btn-sm" title="Re-run past entries against the current model, in case they were scored under an older version">
+                                Recompute past entries
+                            </button>
+                        </div>
                         <p class="field-hint" id="sherlock-hint">Needs at least 4 entries before patterns become visible.</p>
                     </div>
                     <div id="insights-list" class="insights-list"></div>
